@@ -1,0 +1,46 @@
+package question1;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.opencsv.CSVReader;
+
+public class ReadCvsFile {
+	
+	public static Map<Integer, String> loadData() {
+		CSVReader reader = null;
+		Map<Integer, String> map = null;
+        try
+        {
+            // Get the CSVReader instance with specifying the delimiter used in the file
+            reader = new CSVReader(new FileReader("./src/question1/top-1m_13-10-15.csv"),'\n');
+            String [] nextLine;
+            
+            // Read CSV one line at a time and populate Map object
+            while ((nextLine = reader.readNext()) != null)
+            {
+                for(String token : nextLine)
+                {
+                	String[] tokenVals = token.split(",");
+                	map = new HashMap<Integer, String>();
+                	map.put(new Integer(tokenVals[0]), tokenVals[1]);
+                }
+            }
+           
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+		return map;
+	}
+
+}

@@ -3,13 +3,25 @@ package question1;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+
+import question1.CsvUtility;
 
 public class SecurityStatistics {
-	public static final String STUDENT_ID = "21234567";
+	// TODO Empty the generated file every time the application starts
+	public static final String STUDENT_ID_1 = "26619657";
+	public static final String STUDENT_ID_2 = "21234567";
+	
+	Map<Integer, String> sitesUsingHTTP = new HashMap<Integer, String>();
+	Map<Integer, String> sitesUsingHTTPS = new HashMap<Integer, String>();
 	
 	public static void main(String[] args) {
-		System.out.println(getVideoRank(STUDENT_ID));
+		System.out.println(getVideoRank(STUDENT_ID_1));
+		System.out.println(getVideoRank(STUDENT_ID_2));
 		
+		CsvUtility cvs = new CsvUtility();
+		cvs.loadData();
 	}
 	
 	public static int getVideoRank(String studentId) {
@@ -22,7 +34,6 @@ public class SecurityStatistics {
 			.multiply(new BigInteger("100"))
 			.intValue()+1000;
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return 0;
 		}

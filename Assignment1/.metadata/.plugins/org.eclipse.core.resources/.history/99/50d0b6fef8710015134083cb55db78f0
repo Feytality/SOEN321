@@ -1,0 +1,81 @@
+package question1;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jsoup.Jsoup;
+
+import com.opencsv.CSVReader;
+
+public class CvsUtility {
+	
+	Map<Integer, String> cvsDAO = null;
+	//rank, domain, isHTTPS, SSLversion, key-type, key-size, signature-algorithm, isHSTS, isHSTSlong
+	//Map<Integer, String, Boolean, String, String, Integer, String, Boolean, Boolean > outputCvs = null;
+	CSVReader reader = null;
+	
+	public CvsUtility() {
+		cvsDAO = new HashMap<Integer, String>();
+		
+	}
+	
+	public void loadData() {
+		
+		System.out.println("Loading the CVS file...");
+        try
+        {
+            // Get the CSVReader instance with specifying the delimiter used in the file
+            reader = new CSVReader(new FileReader("./src/question1/top-1m_13-10-15.csv"),'\n');
+            String [] nextLine;
+            
+            // Read CSV one line at a time and populate Map object
+            while ((nextLine = reader.readNext()) != null)
+            {
+                for(String token : nextLine)
+                {
+                	// Get a String array with the rank value and site url.
+                	String[] tokenVals = token.split(",");
+                	cvsDAO.put(new Integer(tokenVals[0]), tokenVals[1]);
+                }
+            }
+           
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Complete");
+        writeCvs(1, 1000);
+	}
+	
+	public void writeCvs(int startRange, int endRange) {
+		// Append to the end of the file
+		int counter = startRange;
+		do {
+			String line = counter + ""  + cvsDAO.get(counter);
+			System.out.println(cvsDAO.get(counter));
+			counter++;
+		} while (counter < endRange);
+		
+	}
+	
+	
+	static boolean usesHttps(final String urlWithoutProtocol) throws IOException {
+	    try {
+	        Jsoup.connect("http://" + urlWithoutProtocol).get();
+	        return false;
+	    } catch (final IOException e) {
+	        Jsoup.connect("https://" + urlWithoutProtocol).get();
+	        return true;
+	    }
+	}
+
+}

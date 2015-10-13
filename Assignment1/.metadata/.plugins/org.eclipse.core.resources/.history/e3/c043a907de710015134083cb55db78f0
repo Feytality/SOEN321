@@ -1,0 +1,39 @@
+package question1;
+
+import java.io.FileReader;
+
+import com.opencsv.CSVReader;
+
+public class ReadCvsFile {
+	
+	public static void read() {
+		CSVReader reader = null;
+        try
+        {
+            //Get the CSVReader instance with specifying the delimiter to be used
+            reader = new CSVReader(new FileReader("./src/question1/SampleCSVFile.csv"),',');
+            String [] nextLine;
+            //Read one line at a time
+            while ((nextLine = reader.readNext()) != null)
+            {
+                for(String token : nextLine)
+                {
+                    //Print all tokens
+                    System.out.println(token);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+		
+	}
+
+}
