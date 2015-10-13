@@ -3,20 +3,19 @@ package question1;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 import question1.CsvUtility;
 
-/**
- * Main
- * 
- * @author Felicia Santoro-Petti, Daniel Caterson
- *
- */
 public class SecurityStatistics {
 	// TODO Empty the generated file every time the application starts
 	public static final String STUDENT_ID_1 = "26619657";
 	public static final String STUDENT_ID_2 = "21234567";
-		
+	
+	Map<Integer, String> sitesUsingHTTP = new HashMap<Integer, String>();
+	Map<Integer, String> sitesUsingHTTPS = new HashMap<Integer, String>();
+	
 	public static void main(String[] args) {
 		System.out.println(getVideoRank(STUDENT_ID_1));
 		System.out.println(getVideoRank(STUDENT_ID_2));
@@ -25,13 +24,6 @@ public class SecurityStatistics {
 		cvs.loadData();
 	}
 	
-	/**
-	 * Determines which websites the application is to verify.
-	 * Gives an integer will will be the beginning of the range.
-	 * 
-	 * @param	studentId	Student ID of the students writing the program.
-	 * @return	A value relating to the rank the websites.
-	 */
 	public static int getVideoRank(String studentId) {
 		MessageDigest md;
 		try {

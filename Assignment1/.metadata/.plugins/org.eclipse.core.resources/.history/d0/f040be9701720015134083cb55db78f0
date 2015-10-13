@@ -89,15 +89,15 @@ public class CsvUtility {
 				// TODO replace with printf method
 				//rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
 				//Int, String,Boolean,String,    String,  Int,     String,             Bool,  Boolean
-				String[] line = new String[1];
-				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
-				System.out.println(line[0]);
+				String line = counter + ","  + csvDAO.get(counter) + "," + usesHttps(csvDAO.get(counter));
+				System.out.println(line);
 				
-				writer.writeNext(line);
+				writer.writeNext(line.split(","));
 				counter++;
 			} while (counter <= endRange);
 			writer.close();
-		}
+		} 
+		
 		catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -119,4 +119,5 @@ public class CsvUtility {
 	        return true;
 	    }
 	}
+
 }

@@ -65,19 +65,11 @@ public class CsvUtility {
                 e.printStackTrace();
             }
         }
+        
         System.out.println("Successfully loaded CVS file.");
         writeCvs(1, 1000);
 	}
 	
-	/**
-	 * Writes to a CVS file about the different information about websites.
-	 * Each line in the CVS file will look like the following:
-	 * 
-	 * rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
-	 * 
-	 * @param	startRange	Starting rank of the websites to verify
-	 * @param 	endRange	Ending rank of the websites to verify
-	 */
 	public void writeCvs(int startRange, int endRange) {
 		// TODO Append to the end of the file
 		CSVWriter writer = null;
@@ -89,27 +81,20 @@ public class CsvUtility {
 				// TODO replace with printf method
 				//rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
 				//Int, String,Boolean,String,    String,  Int,     String,             Bool,  Boolean
-				String[] line = new String[1];
-				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
-				System.out.println(line[0]);
+				String line = counter + ","  + csvDAO.get(counter) + "," + usesHttps(csvDAO.get(counter));
+				System.out.println(line);
 				
-				writer.writeNext(line);
+				writer.writeNext(line.split(","));
 				counter++;
 			} while (counter <= endRange);
 			writer.close();
-		}
+		} 
+		
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	/**
-	 * Method which determines if a URL is using the HTTP or HTTPS protocol.
-	 * 
-	 * @param urlWithoutProtocol
-	 * @return
-	 * @throws IOException
-	 */
 	static boolean usesHttps(final String urlWithoutProtocol) throws IOException {
 	    try {
 	        Jsoup.connect("http://www." + urlWithoutProtocol).get();
@@ -119,4 +104,5 @@ public class CsvUtility {
 	        return true;
 	    }
 	}
+
 }

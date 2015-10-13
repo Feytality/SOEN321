@@ -65,6 +65,7 @@ public class CsvUtility {
                 e.printStackTrace();
             }
         }
+        
         System.out.println("Successfully loaded CVS file.");
         writeCvs(1, 1000);
 	}
@@ -76,7 +77,7 @@ public class CsvUtility {
 	 * rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
 	 * 
 	 * @param	startRange	Starting rank of the websites to verify
-	 * @param 	endRange	Ending rank of the websites to verify
+	 * @param 	endRange	Ending rank of the website to verify
 	 */
 	public void writeCvs(int startRange, int endRange) {
 		// TODO Append to the end of the file
@@ -89,15 +90,15 @@ public class CsvUtility {
 				// TODO replace with printf method
 				//rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
 				//Int, String,Boolean,String,    String,  Int,     String,             Bool,  Boolean
-				String[] line = new String[1];
-				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
-				System.out.println(line[0]);
+				String line = counter + ","  + csvDAO.get(counter) + "," + usesHttps(csvDAO.get(counter));
+				System.out.println(line);
 				
-				writer.writeNext(line);
+				writer.writeNext(line.split(","));
 				counter++;
 			} while (counter <= endRange);
 			writer.close();
-		}
+		} 
+		
 		catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -119,4 +120,5 @@ public class CsvUtility {
 	        return true;
 	    }
 	}
+
 }

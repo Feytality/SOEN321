@@ -91,7 +91,7 @@ public class CsvUtility {
 				//Int, String,Boolean,String,    String,  Int,     String,             Bool,  Boolean
 				String[] line = new String[1];
 				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
-				System.out.println(line[0]);
+				System.out.println(line);
 				
 				writer.writeNext(line);
 				counter++;

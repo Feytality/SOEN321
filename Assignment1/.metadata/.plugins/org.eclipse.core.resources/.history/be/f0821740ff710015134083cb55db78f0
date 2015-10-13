@@ -21,34 +21,28 @@ import com.opencsv.CSVWriter;
  */
 public class CsvUtility {
 	
-	// Will contain all the data in the CSV file. 
-	// Rank is the key, value is the site.
 	Map<Integer, String> csvDAO = null;
-	
-	// Object which reads CSV files
-		CSVReader reader = null;
+	//rank, domain, isHTTPS, SSLversion, key-type, key-size, signature-algorithm, isHSTS, isHSTSlong
+	//Map<Integer, String, Boolean, String, String, Integer, String, Boolean, Boolean > outputCvs = null;
+	CSVReader reader = null;
 	
 	public CsvUtility() {
 		csvDAO = new HashMap<Integer, String>();
 	}
 	
-	/**
-	 * Loads the CSV file data into a Map object which
-	 * can be used to look up websites according to their rank.
-	 */
 	public void loadData() {
 		System.out.println("Loading the CVS file...");
-		
-		// Object which reads CSV files
-		CSVReader reader = null;
-        try {
+        try
+        {
             // Get the CSVReader instance with specifying the delimiter used in the file
             reader = new CSVReader(new FileReader("./src/question1/top-1m_13-10-15.csv"),'\n');
+            String [] nextLine;
             
             // Read CSV one line at a time and populate Map object
-            String [] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                for(String token : nextLine) {
+            while ((nextLine = reader.readNext()) != null)
+            {
+                for(String token : nextLine)
+                {
                 	// Get a String array with the rank value and site url.
                 	String[] tokenVals = token.split(",");
                 	csvDAO.put(new Integer(tokenVals[0]), tokenVals[1]);
@@ -65,51 +59,34 @@ public class CsvUtility {
                 e.printStackTrace();
             }
         }
+        
         System.out.println("Successfully loaded CVS file.");
         writeCvs(1, 1000);
 	}
 	
-	/**
-	 * Writes to a CVS file about the different information about websites.
-	 * Each line in the CVS file will look like the following:
-	 * 
-	 * rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
-	 * 
-	 * @param	startRange	Starting rank of the websites to verify
-	 * @param 	endRange	Ending rank of the websites to verify
-	 */
 	public void writeCvs(int startRange, int endRange) {
-		// TODO Append to the end of the file
+		// Append to the end of the file
 		CSVWriter writer = null;
 		try {
 			writer = new CSVWriter(new FileWriter("./src/question1/output.csv"), '\n');
 			
 			int counter = startRange;
 			do {
-				// TODO replace with printf method
-				//rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
-				//Int, String,Boolean,String,    String,  Int,     String,             Bool,  Boolean
-				String[] line = new String[1];
-				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
-				System.out.println(line[0]);
+				// replace with printf method
+				String line = counter + ","  + csvDAO.get(counter) + "," + usesHttps(csvDAO.get(counter));
+				System.out.println(line);
 				
-				writer.writeNext(line);
+				writer.writeNext(line.split(","));
 				counter++;
 			} while (counter <= endRange);
 			writer.close();
-		}
+		} 
+		
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	/**
-	 * Method which determines if a URL is using the HTTP or HTTPS protocol.
-	 * 
-	 * @param urlWithoutProtocol
-	 * @return
-	 * @throws IOException
-	 */
 	static boolean usesHttps(final String urlWithoutProtocol) throws IOException {
 	    try {
 	        Jsoup.connect("http://www." + urlWithoutProtocol).get();
@@ -119,4 +96,5 @@ public class CsvUtility {
 	        return true;
 	    }
 	}
+
 }
