@@ -6,10 +6,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import javax.net.ssl.*;
 
 public class SSLClient {
+	
 	SSLSocket socket;
 	SSLSocketFactory sf;
 	String host;
@@ -19,27 +22,27 @@ public class SSLClient {
 	public SSLClient(Map<Integer, String> csvDao) {
 
 		sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-
+		
 	}
 	
 	//this is how we would order the calls after creating the object elsewhere
+	/**
+	 * Gets all the site information needed for the output file.
+	 */
 	public void getSiteInfo(){
 		
-		ConnectToSite("facebook.com", 443);
+		connectToSite("google.com", 443);
 		try {
-			sendHeaderRequest();//ask for header
-			printHeader();//read and print header
-			if (reader != null) reader.close();
-			if (writer != null) writer.close();
+			//ask for header
+			sendHeaderRequest();
+			printHeader();  //read and print header
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	
-
-	public void ConnectToSite(String host, int port) {
+	public void connectToSite(String host, int port) {
 		try {
 			socket = (SSLSocket) sf.createSocket(host, port);
 
@@ -62,6 +65,10 @@ public class SSLClient {
 				break; // stop when headers are completed, ignore html
 			System.out.println(line);
 		}
+		
+		// close reader/writer after we header is acquired
+		if (reader != null) reader.close();
+		if (writer != null) writer.close();
 
 	}
 
@@ -75,6 +82,20 @@ public class SSLClient {
 		writer.println("User-Agent: Java");
 		writer.println(""); // important, needed to end request
 		writer.flush();
+	}
+	
+	/**
+	 * Must do this for each SSL socket.
+	 * Code taken from Tutorial #4 slides.
+	 */
+	public void reenableRC4() {
+		String[] suites = socket.getEnabledCipherSuites();
+		ArrayList<String> newSuitesList = new ArrayList<String>(Arrays.asList(suites));
+		newSuitesList.add("SSL_RSA_WITH_RC4_128_SHA");
+		newSuitesList.add("SSL_RSA_WITH_RC4_128_MD5");
+		String[] newSuitesArray = new String[newSuitesList.size()];
+		newSuitesArray = newSuitesList.toArray(newSuitesArray);
+		socket.setEnabledCipherSuites(newSuitesArray);
 	}
 
 	public String getHost() {

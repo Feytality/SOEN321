@@ -17,12 +17,19 @@ public class SecurityStatistics {
 	public static final String STUDENT_ID_2 = "29746277";
 	
 	public static void main(String[] args) {
+		// Necessary for re-enabling RC4.
+		java.security.Security.setProperty("jdk.tls.disabledAlgorithms", "");
+		
 		System.out.println(getVideoRank(STUDENT_ID_1));
 		System.out.println(getVideoRank(STUDENT_ID_2));
 		
 		CsvUtility cvs = new CsvUtility();
 		
 		cvs.loadData();
+		
+		// TODO use the changes
+		SSLClient client = new SSLClient(cvs.getCsvDAO()); 
+		client.getSiteInfo();
 	}
 	
 	/**

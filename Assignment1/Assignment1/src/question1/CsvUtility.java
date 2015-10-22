@@ -7,8 +7,6 @@ import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jsoup.Jsoup;
-
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
@@ -112,21 +110,5 @@ public class CsvUtility {
 			e.printStackTrace();
 		}
 	}
-	
-	/**
-	 * Method which determines if a URL is using the HTTP or HTTPS protocol.
-	 * 
-	 * @param urlWithoutProtocol
-	 * @return
-	 * @throws IOException
-	 */
-	static boolean usesHttps(final String urlWithoutProtocol) throws IOException {
-	    try {
-	        Jsoup.connect("http://www." + urlWithoutProtocol).get();
-	        return false;
-	    } catch (SocketTimeoutException e) {
-	        Jsoup.connect("https://www." + urlWithoutProtocol).get();
-	        return true;
-	    }
-	}
+
 }
