@@ -25,7 +25,15 @@ public class CsvUtility {
 	// Rank is the key, value is the site.
 	Map<Integer, String> csvDAO = null;
 	
-	// Object which reads CSV files
+	public Map<Integer, String> getCsvDAO() {
+		return csvDAO;
+	}
+
+	public void setCsvDAO(Map<Integer, String> csvDAO) {
+		this.csvDAO = csvDAO;
+	}
+
+		// Object which reads CSV files
 		CSVReader reader = null;
 	
 	public CsvUtility() {
@@ -36,6 +44,8 @@ public class CsvUtility {
 	 * Loads the CSV file data into a Map object which
 	 * can be used to look up websites according to their rank.
 	 */
+	
+	
 	public void loadData() {
 		System.out.println("Loading the CVS file...");
 		
@@ -78,7 +88,7 @@ public class CsvUtility {
 	 * @param	startRange	Starting rank of the websites to verify
 	 * @param 	endRange	Ending rank of the websites to verify
 	 */
-	public void writeCvs(int startRange, int endRange) {
+	public void writeCvs(int startRange, int endRange) {// this is DUMB
 		// TODO Append to the end of the file
 		CSVWriter writer = null;
 		try {

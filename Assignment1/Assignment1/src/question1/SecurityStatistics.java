@@ -5,7 +5,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import question1.CsvUtility;
-
 /**
  * Main
  * 
@@ -15,13 +14,14 @@ import question1.CsvUtility;
 public class SecurityStatistics {
 	// TODO Empty the generated file every time the application starts
 	public static final String STUDENT_ID_1 = "26619657";
-	public static final String STUDENT_ID_2 = "21234567";
-		
+	public static final String STUDENT_ID_2 = "29746277";
+	
 	public static void main(String[] args) {
 		System.out.println(getVideoRank(STUDENT_ID_1));
 		System.out.println(getVideoRank(STUDENT_ID_2));
 		
 		CsvUtility cvs = new CsvUtility();
+		
 		cvs.loadData();
 	}
 	
