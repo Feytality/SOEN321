@@ -8,80 +8,131 @@ import java.io.PrintWriter;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import javax.net.ssl.*;
+import javax.security.cert.X509Certificate;
 
+/**
+ * Purpose of this class is to act as the SSL Client for a website and
+ * retrieve the information needed.
+ * 
+ * @author Felicia Santoro-Petti, Daniel Caterson
+ *
+ */
 public class SSLClient {
 	
-	SSLSocket socket;
-	SSLSocketFactory sf;
-	String host;
+	// Socket variables
+	SSLSocket socket = null;
+	SSLSocketFactory sf = null;
+	
+	// Reading and writing 
 	BufferedReader reader = null;
 	PrintWriter writer = null;
+	
+	private int PORT = 443; // this is the port for SSL.
+	private String host = null;
+	private ResultLine resultLine; // line to be writen back to the csv file
 
-	public SSLClient(Map<Integer, String> csvDao) {
-
+	public SSLClient(int rank, String host) {
+		this.host = host;
+		resultLine = new ResultLine(rank, host);
 		sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-		
 	}
 	
-	//this is how we would order the calls after creating the object elsewhere
 	/**
 	 * Gets all the site information needed for the output file.
 	 */
 	public void getSiteInfo(){
 		
-		connectToSite("google.com", 443);
 		try {
-			//ask for header
-			sendHeaderRequest();
-			printHeader();  //read and print header
+			//socket = (SSLSocket) sf.createSocket(HOST, PORT);
+			connectToSite(host, PORT);
+			
+			// PUTTING THIS IN A METHOD SCREWS STUFF UP DONT KNOW WHY.
+			writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+			writer.println("GET / HTTP/1.1");
+			writer.println("Host: " + host);
+			writer.println("Accept: */*");
+			writer.println("User-Agent: Java");
+			writer.println(""); //important, needed to end request
+			writer.flush();
+			
+			parseHeader();
+		
+			// Re-enable RC4
+			reenableRC4();
+			
+			// Get session after RC4 is re-enabled
+			SSLSession session = socket.getSession();
+			
+			// Session contains a lot of information, look at the doc java8
+			
+			// get peer certificate stuff
+			X509Certificate[] x509certificates = session.getPeerCertificateChain();
+			// iterate through the array and just pritn it out or look at getter methods
+			// gets signature algorithm SHA256 etc
+			
+			// look at the session object getter methods
+		} catch (Exception e) {
+			// handle errors
+		}
+	}
+	
+	/**
+	 * Connects to a site by opening a new SSL socket using the host and the port
+	 * 
+	 */
+	public void connectToSite(String host, int port) {
+		// Add a way to retry the connection. Due to connection refused or connection time out.
+		try {
+			socket = (SSLSocket) sf.createSocket(host, port);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public void connectToSite(String host, int port) {
-		try {
-			socket = (SSLSocket) sf.createSocket(host, port);
-
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public void printHeader() throws IOException {
-		
-		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-		// read the response
-		for (String line; (line = reader.readLine()) != null;) {
-			if (line.isEmpty())
-				break; // stop when headers are completed, ignore html
-			System.out.println(line);
-		}
-		
-		// close reader/writer after we header is acquired
-		if (reader != null) reader.close();
-		if (writer != null) writer.close();
-
-	}
-
+	/**
+	 * Sends the header request to the open socket.
+	 * 
+	 * @throws IOException
+	 */
 	public void sendHeaderRequest() throws IOException {
-		PrintWriter writer = null;
 		writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-
+		
 		writer.println("GET / HTTP/1.1");
 		writer.println("Host: " + host);
 		writer.println("Accept: */*");
 		writer.println("User-Agent: Java");
 		writer.println(""); // important, needed to end request
 		writer.flush();
+	}
+
+	/**
+	 * Prints and parses the header into parts of the ResultLine that it can
+	 * (determines HTTPS and if is HSTS)
+	 * 
+	 * @throws IOException
+	 */
+	public void parseHeader() throws IOException {
+		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+		// read the response
+		for (String line; (line = reader.readLine()) != null;) {
+			if (line.isEmpty())
+				break; // stop when headers are completed, ignore html
+			if (line.contains("Location") && line.contains("https")){
+				resultLine.setHttps(true);
+			}
+			if (line.contains("Strict-Transport-Security")) {
+				resultLine.setHSTS(true);
+			}
+			System.out.println(line);
+		}
+		
+		// close reader/writer after we header is acquired
+		if (reader != null) reader.close();
+		if (writer != null) writer.close();
 	}
 	
 	/**
@@ -96,13 +147,5 @@ public class SSLClient {
 		String[] newSuitesArray = new String[newSuitesList.size()];
 		newSuitesArray = newSuitesList.toArray(newSuitesArray);
 		socket.setEnabledCipherSuites(newSuitesArray);
-	}
-
-	public String getHost() {
-		return host;
-	}
-
-	public void setHost(String host) {
-		this.host = host;
 	}
 }

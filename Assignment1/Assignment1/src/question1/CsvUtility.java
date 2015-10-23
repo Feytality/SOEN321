@@ -3,7 +3,6 @@ package question1;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +22,14 @@ public class CsvUtility {
 	// Rank is the key, value is the site.
 	Map<Integer, String> csvDAO = null;
 	
+	// Object which reads CSV files
+	CSVReader reader = null;
+	
+		
+	public CsvUtility() {
+		csvDAO = new HashMap<Integer, String>();
+	}
+	
 	public Map<Integer, String> getCsvDAO() {
 		return csvDAO;
 	}
@@ -30,20 +37,11 @@ public class CsvUtility {
 	public void setCsvDAO(Map<Integer, String> csvDAO) {
 		this.csvDAO = csvDAO;
 	}
-
-		// Object which reads CSV files
-		CSVReader reader = null;
-	
-	public CsvUtility() {
-		csvDAO = new HashMap<Integer, String>();
-	}
 	
 	/**
 	 * Loads the CSV file data into a Map object which
 	 * can be used to look up websites according to their rank.
 	 */
-	
-	
 	public void loadData() {
 		System.out.println("Loading the CVS file...");
 		
@@ -51,7 +49,7 @@ public class CsvUtility {
 		CSVReader reader = null;
         try {
             // Get the CSVReader instance with specifying the delimiter used in the file
-            reader = new CSVReader(new FileReader("./src/question1/top-1m_13-10-15.csv"),'\n');
+            reader = new CSVReader(new FileReader("./src/question1/top-1m_13-10-15.csv"), '\n');
             
             // Read CSV one line at a time and populate Map object
             String [] nextLine;
@@ -74,7 +72,7 @@ public class CsvUtility {
             }
         }
         System.out.println("Successfully loaded CVS file.");
-        writeCvs(1, 1000);
+        writeCvs(1, 10000);
 	}
 	
 	/**
