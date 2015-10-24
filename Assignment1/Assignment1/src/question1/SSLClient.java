@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +45,9 @@ public class SSLClient {
 	public void getSiteInfo(){
 		
 		try {
+			int attempt = 1;
 			//socket = (SSLSocket) sf.createSocket(HOST, PORT);
-			connectToSite(host, PORT);
+			connectToSite(host, PORT,attempt);
 			
 			// PUTTING THIS IN A METHOD SCREWS STUFF UP DONT KNOW WHY.
 			writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -81,14 +83,22 @@ public class SSLClient {
 	 * Connects to a site by opening a new SSL socket using the host and the port
 	 * 
 	 */
-	public void connectToSite(String host, int port) {
+	public void connectToSite(String host, int port,int attempt) {
 		// Add a way to retry the connection. Due to connection refused or connection time out.
 		try {
 			socket = (SSLSocket) sf.createSocket(host, port);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
+		}catch(ConnectException e){
+			if(attempt<4){
+			System.out.println("RETRYING CONNECTION TO '"+ host+ "'");
+				connectToSite( host, port, attempt+1);
+			}else{
+				System.out.println("CONNECTION FAILED");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			
 		}
 	}
 	
