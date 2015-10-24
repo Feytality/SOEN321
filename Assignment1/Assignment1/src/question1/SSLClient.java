@@ -13,22 +13,25 @@ import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 
 /**
- * Purpose of this class is to act as the SSL Client for a website and
- * retrieve the information needed.
+ * Purpose of this class is to act as the SSL Client for a website and retrieve
+ * the information needed.
  * 
  * @author Felicia Santoro-Petti, Daniel Caterson
  *
  */
 public class SSLClient {
-	
+
 	// Socket variables
 	SSLSocket socket = null;
 	SSLSocketFactory sf = null;
-	
-	// Reading and writing 
+
+	// Reading and writing
 	BufferedReader reader = null;
 	PrintWriter writer = null;
-	
+
+	// Certificate Handle
+	X509Certificate[] x509certificates;
+
 	private int PORT = 443; // this is the port for SSL.
 	private String host = null;
 	private ResultLine resultLine; // line to be writen back to the csv file
@@ -38,70 +41,74 @@ public class SSLClient {
 		resultLine = new ResultLine(rank, host);
 		sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
 	}
-	
+
 	/**
 	 * Gets all the site information needed for the output file.
 	 */
-	public void getSiteInfo(){
-		
+	public void getSiteInfo() {
+
 		try {
 			int attempt = 1;
-			//socket = (SSLSocket) sf.createSocket(HOST, PORT);
-			connectToSite(host, PORT,attempt);
-			
+			// socket = (SSLSocket) sf.createSocket(HOST, PORT);
+			connectToSite(host, PORT, attempt);
+
 			// PUTTING THIS IN A METHOD SCREWS STUFF UP DONT KNOW WHY.
 			writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 			writer.println("GET / HTTP/1.1");
 			writer.println("Host: " + host);
 			writer.println("Accept: */*");
 			writer.println("User-Agent: Java");
-			writer.println(""); //important, needed to end request
+			writer.println(""); // important, needed to end request
 			writer.flush();
-			
+
 			parseHeader();
-		
+
 			// Re-enable RC4
 			reenableRC4();
-			
+
 			// Get session after RC4 is re-enabled
 			SSLSession session = socket.getSession();
-			
+
 			// Session contains a lot of information, look at the doc java8
-			
+
 			// get peer certificate stuff
-			X509Certificate[] x509certificates = session.getPeerCertificateChain();
-			// iterate through the array and just pritn it out or look at getter methods
+			x509certificates = session.getPeerCertificateChain();
+			parseCertificate();
+			// iterate through the array and just pritn it out or look at getter
+			// methods
 			// gets signature algorithm SHA256 etc
-			
+
 			// look at the session object getter methods
 		} catch (Exception e) {
 			// handle errors
 		}
 	}
-	
+
 	/**
-	 * Connects to a site by opening a new SSL socket using the host and the port
+	 * Connects to a site by opening a new SSL socket using the host and the
+	 * port
 	 * 
 	 */
-	public void connectToSite(String host, int port,int attempt) {
-		// Add a way to retry the connection. Due to connection refused or connection time out.
+	public void connectToSite(String host, int port, int attempt) {
+		// Add a way to retry the connection. Due to connection refused or
+		// connection time out.
 		try {
 			socket = (SSLSocket) sf.createSocket(host, port);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
-		}catch(ConnectException e){
-			if(attempt<4){
-			System.out.println("RETRYING CONNECTION TO '"+ host+ "'");
-				connectToSite( host, port, attempt+1);
-			}else{
+		} catch (ConnectException e) {
+			if (attempt < 4) {
+				System.out.println("RETRYING CONNECTION TO '" + host + "'");
+				connectToSite(host, port, attempt + 1);
+			} else {
 				System.out.println("CONNECTION FAILED");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			
+
 		}
 	}
-	
+
 	/**
 	 * Sends the header request to the open socket.
 	 * 
@@ -109,7 +116,7 @@ public class SSLClient {
 	 */
 	public void sendHeaderRequest() throws IOException {
 		writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-		
+
 		writer.println("GET / HTTP/1.1");
 		writer.println("Host: " + host);
 		writer.println("Accept: */*");
@@ -131,23 +138,50 @@ public class SSLClient {
 		for (String line; (line = reader.readLine()) != null;) {
 			if (line.isEmpty())
 				break; // stop when headers are completed, ignore html
-			if (line.contains("Location") && line.contains("https")){
+			if (line.contains("Location") && line.contains("https")) {
 				resultLine.setHttps(true);
 			}
-			if (line.contains("Strict-Transport-Security")) {
+			if (line.contains("Strict-Transport-Security") || line.contains("strict-transport-security")) {
+				//String manipulation to get age of HSTS
+				int startOfAge = line.indexOf("=");
+				int age=0;
+				if (startOfAge != -1) {
+					int endOfAge = line.indexOf(";", startOfAge);
+					if (endOfAge != -1) {
+						System.out.println(line.substring(startOfAge + 1, endOfAge));
+					} else {
+						endOfAge = line.length();
+						System.out.println(line.substring(startOfAge + 1, endOfAge));
+					}
+					age = Integer.parseInt(line.substring(startOfAge + 1, endOfAge));
+				}//end manipulation
 				resultLine.setHSTS(true);
+				resultLine.setHstsAge(age);
 			}
 			System.out.println(line);
 		}
-		
+
 		// close reader/writer after we header is acquired
-		if (reader != null) reader.close();
-		if (writer != null) writer.close();
+		if (reader != null)
+			reader.close();
+		if (writer != null)
+			writer.close();
 	}
-	
+
 	/**
-	 * Must do this for each SSL socket.
-	 * Code taken from Tutorial #4 slides.
+	 * Prints Security details about a given host and files them into the result line obj
+	 */
+	public void parseCertificate() {
+		for (int i = 0; i < x509certificates.length; i++) {
+			System.out.println(x509certificates[i].getSigAlgName());
+			//this returns multiple algos for a given site, might need to accommodate in result line
+			//maybe not	
+		}
+
+	}
+
+	/**
+	 * Must do this for each SSL socket. Code taken from Tutorial #4 slides.
 	 */
 	public void reenableRC4() {
 		String[] suites = socket.getEnabledCipherSuites();

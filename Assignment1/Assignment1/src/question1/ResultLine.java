@@ -17,7 +17,9 @@ public class ResultLine {
 	private String signatureAlgorithm; //need
 	private boolean isHSTS; //need
 	private boolean isHSTSLong; //need
+	private int hstsAge;//need
 	
+
 	public ResultLine() {	
 	}
 
@@ -32,6 +34,14 @@ public class ResultLine {
 		this.signatureAlgorithm = "";
 		this.isHSTS = false;
 		this.isHSTSLong = false;
+	}
+	
+	public int getHstsAge() {
+		return hstsAge;
+	}
+	
+	public void setHstsAge(int hstsAge) {
+		this.hstsAge = hstsAge;
 	}
 
 	public int getRank() {
@@ -106,6 +116,7 @@ public class ResultLine {
 		this.isHSTSLong = isHSTSLong;
 	}
 	
+	
 	/**
 	 * Override the toString method to make a ResultLine look like the expected
 	 * result line.
@@ -114,6 +125,14 @@ public class ResultLine {
 	public String toString(){
 		return rank + "," + domain + "," + isHttps + "," + sslVersion + "," + keyType + "," + 
 				keySize + "," + signatureAlgorithm + "," + isHSTS + "," + isHSTSLong;
+	}
+	/**
+	 * Will generate a security rating for the site based on the Https,algorithm, SSL/TLS ,HSTS, Certificate values 
+	 * @return
+	 */
+	public String getSecurityRating(){
+		
+		return "The meaning of life";
 	}
 	
 }
