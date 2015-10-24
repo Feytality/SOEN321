@@ -148,10 +148,8 @@ public class SSLClient {
 				if (startOfAge != -1) {
 					int endOfAge = line.indexOf(";", startOfAge);
 					if (endOfAge != -1) {
-						System.out.println(line.substring(startOfAge + 1, endOfAge));
 					} else {
 						endOfAge = line.length();
-						System.out.println(line.substring(startOfAge + 1, endOfAge));
 					}
 					age = Integer.parseInt(line.substring(startOfAge + 1, endOfAge));
 				}//end manipulation
@@ -173,8 +171,11 @@ public class SSLClient {
 	 */
 	public void parseCertificate() {
 		for (int i = 0; i < x509certificates.length; i++) {
-			System.out.println(x509certificates[i].getSigAlgName());
 			//this returns multiple algos for a given site, might need to accommodate in result line
+			System.out.println(x509certificates[i].getSubjectDN());
+			System.out.println(x509certificates[i].getIssuerDN());
+			System.out.println(x509certificates[i].getSigAlgName());
+			System.out.println(x509certificates[i].getPublicKey());
 			//maybe not	
 		}
 
