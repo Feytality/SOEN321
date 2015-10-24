@@ -12,12 +12,12 @@ public class ResultLine {
 	private String domain;
 	private boolean isHttps;
 	private String sslVersion; //need
-	private String keyType; //need
-	private int keySize; //need
-	private String signatureAlgorithm; //need
-	private boolean isHSTS; //need
+	private String keyType;
+	private int keySize;
+	private String signatureAlgorithm;
+	private boolean isHSTS;
 	private boolean isHSTSLong; //need
-	private int hstsAge;//need
+	private int hstsAge;
 	
 
 	public ResultLine() {	

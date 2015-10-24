@@ -92,9 +92,7 @@ public class CsvUtility {
 			
 			int counter = startRange;
 			do {
-				// TODO replace with printf method
-				//rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
-				//Int, String,Boolean,String,    String,  Int,     String,             Bool,  Boolean
+				// TODO replace with toString for resultline object
 				String[] line = new String[1];
 				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
 				System.out.println(line[0]);
