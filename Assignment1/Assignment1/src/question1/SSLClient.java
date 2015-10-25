@@ -67,6 +67,9 @@ public class SSLClient {
 				// gets signature algorithm SHA256 etc
 				x509certificates = session.getPeerCertificateChain();
 				parseCertificate();
+				System.out.println("#####################################################");
+				System.out.println(resultLine.toString());
+				System.out.println("#####################################################");
 			} else {
 				System.out.println("Could not connect to domain: " + host);
 				System.out.println();
@@ -98,9 +101,17 @@ public class SSLClient {
 		} catch (ConnectException e) {
 			if (attempt < 4) {
 				System.out.println("RETRYING CONNECTION TO '" + host + "' (ATTEMPT " + attempt + ")");
-				connectToSite(host, port, attempt + 1);
+				new java.util.Timer().schedule( 
+				        new java.util.TimerTask() {
+				            @Override
+				            public void run() {
+				            	connectToSite(host, port, attempt + 1);				  
+				            }
+				        }, 
+				        3000 
+				);
 			} else {
-				System.out.println("CONNECTION FAILED");
+				System.out.println("CONNECTION TO '"+host+"' IMPOSSIBLE");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -159,7 +170,7 @@ public class SSLClient {
 					age = Integer.parseInt(line.substring(startOfAge + 1, endOfAge));
 				}//end manipulation
 				resultLine.setHSTS(true);
-				resultLine.setHstsAge(age);
+				resultLine.setHSTSAge(age);
 			}
 			System.out.println(line);
 			

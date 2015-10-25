@@ -7,20 +7,19 @@ package question1;
  *
  */
 public class ResultLine {
-	
+
 	private int rank;
 	private String domain;
 	private boolean isHttps;
-	private String sslVersion; //need
+	private String sslVersion; // need
 	private String keyType;
 	private int keySize;
 	private String signatureAlgorithm;
 	private boolean isHSTS;
-	private boolean isHSTSLong; //need
-	private int hstsAge;
-	
+	private boolean isHSTSLong; // need
+	private int HSTSAge;
 
-	public ResultLine() {	
+	public ResultLine() {
 	}
 
 	public ResultLine(int rank, String domain) {
@@ -34,14 +33,15 @@ public class ResultLine {
 		this.signatureAlgorithm = "";
 		this.isHSTS = false;
 		this.isHSTSLong = false;
+		this.HSTSAge = -1;
 	}
-	
-	public int getHstsAge() {
-		return hstsAge;
+
+	public int getHSTSAge() {
+		return HSTSAge;
 	}
-	
-	public void setHstsAge(int hstsAge) {
-		this.hstsAge = hstsAge;
+
+	public void setHSTSAge(int hstsAge) {
+		this.HSTSAge = hstsAge;
 	}
 
 	public int getRank() {
@@ -109,30 +109,36 @@ public class ResultLine {
 	}
 
 	public boolean isHSTSLong() {
+		if (HSTSAge >= 15768000) // about 6 months in seconds
+			isHSTSLong = true;
+		else
+			isHSTSLong = false;
 		return isHSTSLong;
 	}
 
 	public void setHSTSLong(boolean isHSTSLong) {
 		this.isHSTSLong = isHSTSLong;
 	}
-	
-	
+
 	/**
 	 * Override the toString method to make a ResultLine look like the expected
 	 * result line.
 	 */
 	@Override
-	public String toString(){
-		return rank + "," + domain + "," + isHttps + "," + sslVersion + "," + keyType + "," + 
-				keySize + "," + signatureAlgorithm + "," + isHSTS + "," + isHSTSLong;
+	public String toString() {
+		return rank + "," + domain + "," + isHttps + "," + sslVersion + "," + keyType + "," + keySize + ","
+				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong();
 	}
+
 	/**
-	 * Will generate a security rating for the site based on the Https,algorithm, SSL/TLS ,HSTS, Certificate values 
+	 * Will generate a security rating for the site based on the
+	 * Https,algorithm, SSL/TLS ,HSTS, Certificate values
+	 * 
 	 * @return
 	 */
-	public String getSecurityRating(){
-		
+	public String getSecurityRating() {
+
 		return "The meaning of life";
 	}
-	
+
 }
