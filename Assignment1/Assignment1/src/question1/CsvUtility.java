@@ -25,15 +25,31 @@ public class CsvUtility {
 	// Object which reads CSV files
 	CSVReader reader = null;
 	
-		
+	/**
+	 * No parameter constructor which creates a Map with
+	 * an Integer key and a String value.
+	 */
 	public CsvUtility() {
 		csvDAO = new HashMap<Integer, String>();
 	}
 	
+	/**
+	 * Gets the CsvDAO which contains all the information from
+	 * the CSV file.
+	 * 
+	 * @return	The map containing the key-value object of the
+	 * 			websites in the CSV file.
+	 */
 	public Map<Integer, String> getCsvDAO() {
 		return csvDAO;
 	}
 
+	/**
+	 * Sets the csvDAO instance variable.
+	 * 
+	 * @param	csvDAO	Key-value pair which represents a website's 
+	 * 					rank and domain.
+	 */
 	public void setCsvDAO(Map<Integer, String> csvDAO) {
 		this.csvDAO = csvDAO;
 	}

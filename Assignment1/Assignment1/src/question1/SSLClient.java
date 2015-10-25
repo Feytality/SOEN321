@@ -32,10 +32,23 @@ public class SSLClient {
 	// Certificate Handle
 	X509Certificate[] x509certificates;
 
-	private int PORT = 443; // this is the port for SSL.
+	// The port used for SSL
+	private int PORT = 443;
+	
+	// Variable which holds the host name of the website 
+	// the class is obtaining security information for
 	private String host = null;
-	private ResultLine resultLine; // line to be writen back to the csv file
+	
+	// Object representing the line to write back to a CSV file.
+	private ResultLine resultLine;
 
+	/**
+	 * Two parameter constructor which takes the rank and host of
+	 * a website to connect to.
+	 * 
+	 * @param	rank	The website's rank in the CSV file.
+	 * @param 	domain	The website's domain.
+	 */
 	public SSLClient(int rank, String host) {
 		this.host = host;
 		resultLine = new ResultLine(rank, host);
@@ -43,12 +56,12 @@ public class SSLClient {
 	}
 
 	/**
-	 * Gets all the site information needed for the output file.
+	 * Gets all the site information needed for a ResultLine.
 	 */
 	public void getSiteInfo() {
 		try {
 			int attempt = 1;
-			boolean connected = connectToSite(host, PORT, attempt);
+			boolean connected = connectToSite(host, attempt);
 
 			if(connected) {
 				sendHeaderRequest();
@@ -86,15 +99,22 @@ public class SSLClient {
 
 	/**
 	 * Connects to a site by opening a new SSL socket using the host and the
-	 * port
+	 * port. Attempts to reconnect on connection failure related to a refused connection
+	 * or a connection time out.
 	 * 
+	 * @param	host	The host name of the website to connect to.
+	 * @param 	attempt	The current number of attempts to connect to the host.
+	 * 
+	 * @return	True if you are able to connect to the site, else false.
 	 */
-	public boolean connectToSite(String host, int port, int attempt) {
-		// Add a way to retry the connection. Due to connection refused or
-		// connection time out.
+	public boolean connectToSite(String host, int attempt) {
+		// Variable which holds the return value of the method to avoid mutliple
+		// return statements.
 		boolean retVal = false;
+		
 		try {
-			socket = (SSLSocket) sf.createSocket(host, port);
+			// First attempt to connect to the host using the SSL port 443.
+			socket = (SSLSocket) sf.createSocket(host, PORT);
 			retVal = true;
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -102,16 +122,16 @@ public class SSLClient {
 			if (attempt < 4) {
 				System.out.println("RETRYING CONNECTION TO '" + host + "' (ATTEMPT " + attempt + ")");
 				new java.util.Timer().schedule( 
-				        new java.util.TimerTask() {
-				            @Override
-				            public void run() {
-				            	connectToSite(host, port, attempt + 1);				  
-				            }
-				        }, 
-				        3000 
+						new java.util.TimerTask() {
+							@Override
+							public void run() {
+								connectToSite(host, attempt + 1);				  
+							}
+						}, 
+						3000 
 				);
 			} else {
-				System.out.println("CONNECTION TO '"+host+"' IMPOSSIBLE");
+				System.out.println("CONNECTION TO '" + host + "' IMPOSSIBLE");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -160,7 +180,7 @@ public class SSLClient {
 			if (line.contains("Strict-Transport-Security") || line.contains("strict-transport-security")) {
 				//String manipulation to get age of HSTS
 				int startOfAge = line.indexOf("=");
-				int age=0;
+				int age = 0;
 				if (startOfAge != -1) {
 					int endOfAge = line.indexOf(";", startOfAge);
 					if (endOfAge != -1) {
@@ -169,15 +189,17 @@ public class SSLClient {
 					}
 					age = Integer.parseInt(line.substring(startOfAge + 1, endOfAge));
 				}//end manipulation
+				
 				resultLine.setHSTS(true);
 				resultLine.setHSTSAge(age);
 			}
 			System.out.println(line);
-			
 		}
+		
 		System.out.println("******* End Response *******");
 		System.out.println();
-		// close reader/writer after we header is acquired
+		
+		// Close reader and writer objects
 		if (reader != null)
 			reader.close();
 		if (writer != null)
@@ -188,30 +210,38 @@ public class SSLClient {
 	 * Prints Security details about a given host and files them into the result line obj
 	 */
 	public void parseCertificate() {
-		System.out.println("******* Parse Certificate *******");
-		// don't know how to deal with the multiple lines
-		for (int i = 0; i < x509certificates.length; i++) {
-			System.out.println("Subject DN: " + x509certificates[i].getSubjectDN());
-			System.out.println("Issuer DN: " + x509certificates[i].getIssuerDN());
-			System.out.println("Signature Algorithm: " + x509certificates[i].getSigAlgName());
-			System.out.println("Public key: " + x509certificates[i].getPublicKey());
-			
-			resultLine.setSignatureAlgorithm(x509certificates[i].getSigAlgName());
-			String publicKey = x509certificates[i].getPublicKey().toString();
-			
-			resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
-			String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
-			try{
-				resultLine.setKeySize(Integer.parseInt(keySize));
-			} catch (Exception e) {
-				System.out.println("Could not parse the key size: " + keySize);
+		try {
+			PrintWriter writer = new PrintWriter("./src/question1/certificate-info.txt", "UTF-8");
+			writer.println("******* Parse Certificate for " + host + " *******");
+						
+			// don't know how to deal with the multiple lines
+			for (int i = 0; i < x509certificates.length; i++) {
+				writer.println("Subject DN: " + x509certificates[i].getSubjectDN());
+				writer.println("Issuer DN: " + x509certificates[i].getIssuerDN());
+				writer.println("Signature Algorithm: " + x509certificates[i].getSigAlgName());
+				writer.println("Public key: " + x509certificates[i].getPublicKey());
+				
+				resultLine.setSignatureAlgorithm(x509certificates[i].getSigAlgName());
+				String publicKey = x509certificates[i].getPublicKey().toString();
+				
+				resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
+				String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
+				try{
+					resultLine.setKeySize(Integer.parseInt(keySize));
+				} catch (Exception e) {
+					writer.println("Could not parse the key size: " + keySize);
+				}
+				writer.println("Key Type: " + resultLine.getKeyType());
+				writer.println("Key Size: " + resultLine.getKeySize());
 			}
-			System.out.println("Key type: " + resultLine.getKeyType());
-			System.out.println("Key size: " + resultLine.getKeySize());
+			
+			writer.println("******* End Certificate *******");
+			writer.println();
+			
+			writer.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
 		}
-		
-		System.out.println("******* End Certificate *******");
-		System.out.println();
 
 	}
 
