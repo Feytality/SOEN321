@@ -27,7 +27,7 @@ public class SecurityStatistics {
 		
 		CsvUtility cvs = new CsvUtility();
 		
-		cvs.loadData();
+		cvs.oldSchoolLoad();
 		
 		// Uses range 1-1000 which every student in the class must evaluate.
 		for(int i = 1; i < 1000; i++) {

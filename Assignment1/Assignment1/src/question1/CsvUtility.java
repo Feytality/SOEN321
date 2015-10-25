@@ -1,8 +1,12 @@
 package question1;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,6 +95,35 @@ public class CsvUtility {
         writeCvs(1, 10000);
 	}
 	
+	
+	public void oldSchoolLoad(){
+		String fileName = new String();
+	    fileName = "./src/question1/top-1m_13-10-15.csv";
+	    String thisLine;	    
+	    FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(fileName);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	    @SuppressWarnings("resource")
+	    BufferedReader myInput = new BufferedReader(new InputStreamReader(fis));
+	    try {
+			while ((thisLine = myInput.readLine()) != null) {
+			    String[] tokenVals = thisLine.split(",");
+			    csvDAO.put(new Integer(tokenVals[0]), tokenVals[1]);
+
+			       
+			        }
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    System.out.println("Successfully loaded CVS file.");   
+
+		
+	}
 	/**
 	 * Writes to a CVS file about the different information about websites.
 	 * Each line in the CVS file will look like the following:
