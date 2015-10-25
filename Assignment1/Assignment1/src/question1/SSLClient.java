@@ -1,6 +1,8 @@
 package question1;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -211,7 +213,8 @@ public class SSLClient {
 	 */
 	public void parseCertificate() {
 		try {
-			PrintWriter writer = new PrintWriter("./src/question1/certificate-info.txt", "UTF-8");
+			PrintWriter writer = new PrintWriter(new FileOutputStream(
+				    new File("./src/question1/certificate-info.txt"),true));
 			writer.println("******* Parse Certificate for " + host + " *******");
 						
 			// don't know how to deal with the multiple lines
