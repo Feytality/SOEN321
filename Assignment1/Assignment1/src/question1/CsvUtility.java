@@ -3,14 +3,12 @@ package question1;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 
 /**
@@ -22,13 +20,16 @@ import com.opencsv.CSVWriter;
  */
 public class CsvUtility {
 	
-	// Will contain all the data in the CSV file. 
-	// Rank is the key, value is the site.
-	Map<Integer, String> csvDAO = null;
+	// Instance variables
 	
-	// Object which reads CSV files
-	CSVReader reader = null;
+	/** 
+	 * Will contain all the data in the CSV file. 
+	 * Rank is the key, value is the site.
+	 */
+	private Map<Integer, String> csvDAO = null;
 	
+	// Constructor
+
 	/**
 	 * No parameter constructor which creates a Map with
 	 * an Integer key and a String value.
@@ -36,6 +37,8 @@ public class CsvUtility {
 	public CsvUtility() {
 		csvDAO = new HashMap<Integer, String>();
 	}
+	
+	// Setters and Getters
 	
 	/**
 	 * Gets the CsvDAO which contains all the information from
@@ -62,68 +65,36 @@ public class CsvUtility {
 	 * Loads the CSV file data into a Map object which
 	 * can be used to look up websites according to their rank.
 	 */
-	public void loadData() {
-		System.out.println("Loading the CVS file...");
-		
-		// Object which reads CSV files
-		CSVReader reader = null;
-        try {
-            // Get the CSVReader instance with specifying the delimiter used in the file
-            reader = new CSVReader(new FileReader("./src/question1/top-1m_13-10-15.csv"), '\n');
-            
-            // Read CSV one line at a time and populate Map object
-            String [] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                for(String token : nextLine) {
-                	// Get a String array with the rank value and site url.
-                	String[] tokenVals = token.split(",");
-                	csvDAO.put(new Integer(tokenVals[0]), tokenVals[1]);
-                }
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            try {
-                reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Successfully loaded CVS file.");
-        writeCvs(1, 10000);
-	}
-	
-	
-	public void oldSchoolLoad(){
-		String fileName = new String();
-	    fileName = "./src/question1/top-1m_13-10-15.csv";
-	    String thisLine;	    
-	    FileInputStream fis = null;
+	@SuppressWarnings("resource")
+	public void loadCsvDAO(int range1, int range2, int range3){
+		final String fileName = "./src/question1/top-1m_13-10-15.csv";
 		try {
-			fis = new FileInputStream(fileName);
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	    @SuppressWarnings("resource")
-	    BufferedReader myInput = new BufferedReader(new InputStreamReader(fis));
-	    try {
-			while ((thisLine = myInput.readLine()) != null) {
-			    String[] tokenVals = thisLine.split(",");
-			    csvDAO.put(new Integer(tokenVals[0]), tokenVals[1]);
-
-			       
-			        }
+			String line = "";
+			FileInputStream fis = new FileInputStream(fileName);
+	    
+			BufferedReader myInput = new BufferedReader(new InputStreamReader(fis));
+	    
+			while ((line = myInput.readLine()) != null) {
+			    String[] tokenVals = line.split(",");
+			    int rank = Integer.parseInt(tokenVals[0]);
+			    if ((rank >= range1 && rank < range1+999) || 
+			    	(rank >= range2 && rank < range2+9999) ||
+			    	(rank >= range3 && rank < range3+9999))
+			    	csvDAO.put(rank, tokenVals[1]);
+	        }
+		} catch (FileNotFoundException fnfe) {
+			System.out.println("Could not find the specified file! Please be sure to get the latest"
+					+ " version of the top million websites.");
+			fnfe.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    System.out.println("Successfully loaded CVS file.");   
-
-		
+	    
+	    System.out.println("Successfully loaded CVS file.");
+	    writeCvs(1, 1000); // TODO remove this line, only here for now to test the function.
 	}
+	
+	// TODO rewrite this method to not use the opencsv dependency
 	/**
 	 * Writes to a CVS file about the different information about websites.
 	 * Each line in the CVS file will look like the following:
@@ -133,8 +104,8 @@ public class CsvUtility {
 	 * @param	startRange	Starting rank of the websites to verify
 	 * @param 	endRange	Ending rank of the websites to verify
 	 */
-	public void writeCvs(int startRange, int endRange) {// this is DUMB
-		// TODO Append to the end of the file
+	public void writeCvs(int startRange, int endRange) {
+		// TODO Append to the end of the file for each range
 		CSVWriter writer = null;
 		try {
 			writer = new CSVWriter(new FileWriter("./src/question1/output.csv"), '\n');
@@ -143,7 +114,7 @@ public class CsvUtility {
 			do {
 				// TODO replace with toString for resultline object
 				String[] line = new String[1];
-				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(csvDAO.get(counter));
+				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(.get(counter));
 				System.out.println(line[0]);
 				
 				writer.writeNext(line);

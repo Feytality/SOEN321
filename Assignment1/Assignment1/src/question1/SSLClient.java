@@ -70,6 +70,15 @@ public class SSLClient {
 	
 				// Extract information from response.
 				parseHeader();
+			} else {
+				System.out.println("Could not connect to domain '" + host + 
+									"'. This means the website is not using HTTPS.");
+				System.out.println();
+				
+				resultLine.setHttps(false);
+				resultLine.setHSTS(false);
+				resultLine.setHSTSAge(0);
+				resultLine.setHSTSLong(false);
 				
 				// Find version of SSL
 				determineSSLVersion();
@@ -82,13 +91,14 @@ public class SSLClient {
 				// gets signature algorithm SHA256 etc
 				x509certificates = session.getPeerCertificateChain();
 				parseCertificate();
+				
 				System.out.println("#####################################################");
 				System.out.println(resultLine.toString());
 				System.out.println("#####################################################");
-			} else {
-				System.out.println("Could not connect to domain: " + host);
-				System.out.println();
 			}
+				
+				
+			
 		} catch (IOException ioe) {
 			System.out.println("Could not send request for domain '" + host + "'");
 			System.out.println();
@@ -119,6 +129,7 @@ public class SSLClient {
 			socket = (SSLSocket) sf.createSocket(host, PORT);
 			retVal = true;
 		} catch (UnknownHostException e) {
+			// This means that the site gave a 404 error
 			e.printStackTrace();
 		} catch (ConnectException e) {
 			if (attempt < 4) {
@@ -135,10 +146,11 @@ public class SSLClient {
 			} else {
 				System.out.println("CONNECTION TO '" + host + "' IMPOSSIBLE");
 			}
-		} catch (IOException e) {
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 		return retVal;
 	}
 

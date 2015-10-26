@@ -39,6 +39,7 @@ public class SecurityLevel {
 	private static Map<String, Integer> keyType = new HashMap<String, Integer>(){
 		{
 			put("Sun RSA public key", 1);
+			put("Sun EC public key", 2);
 		}
 	};
 	
@@ -49,6 +50,9 @@ public class SecurityLevel {
 		{
 			put(4096, 1);
 			put(2048, 2);
+			put(1024, 3);
+			put(384, 4); // Sun EC public key
+			put(256, 5); // same
 		}
 	};
 	
@@ -58,8 +62,12 @@ public class SecurityLevel {
 	private static Map<String, Integer> signatureAlgorithm = new HashMap<String, Integer>(){
 		{
 			put("SHA384withRSA", 1);
+			put("SHA384withECDSA", 2);
 			put("SHA256withRSA", 2);
-			put("SHA1withRSA", 3);
+			put("SHA256withECDSA", 3);
+			put("SHA1withRSA", 4);
+			put("SHA1withECDSA", 5);
+			put("MD2withRSA", 6);
 		}
 	};
 	

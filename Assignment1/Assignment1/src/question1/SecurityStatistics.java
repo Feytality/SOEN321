@@ -21,13 +21,27 @@ public class SecurityStatistics {
 	public static void main(String[] args) {
 		// Necessary for re-enabling RC4.
 		java.security.Security.setProperty("jdk.tls.disabledAlgorithms", "");
+
+		// First range is the range the whole class must analyze: 1 to 1000
+		int startRange1 = 1; 
+		int endRange1 = 1000;
+		// Second range based on first student ID: range2 to range2+9999
+		int startRange2 = getVideoRank(STUDENT_ID_1); 
+		int endRange2 = startRange2 + 9999;
 		
-		System.out.println(getVideoRank(STUDENT_ID_1));
-		System.out.println(getVideoRank(STUDENT_ID_2));
+		// Third range based on second student ID: range3 to range3+9999
+		int startRange3 = getVideoRank(STUDENT_ID_2);
+		int endRange3 = startRange3 + 9999;
 		
+		System.out.println("This program will be working with websites with ranges: " + 
+				startRange1 + "-" + endRange1 + ", " + 
+				startRange2 + "-" + endRange2 + ", " +
+				startRange3 + "-" + endRange3);
+
+		System.out.println();
 		CsvUtility cvs = new CsvUtility();
 		
-		cvs.oldSchoolLoad();
+		cvs.loadCsvDAO(startRange1, startRange2, startRange3);
 		
 		// Uses range 1-1000 which every student in the class must evaluate.
 		for(int i = 1; i < 1000; i++) {
