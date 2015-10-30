@@ -69,7 +69,7 @@ public class SSLClient {
 	public void getSiteInfo() {
 		try {
 			int attempt = 1;
-			boolean connected = connectToSite(host, attempt);
+			boolean connected = connectToSite("www."+host, attempt);
 
 			if(connected) {
 				sendHeaderRequest();
@@ -187,13 +187,28 @@ public class SSLClient {
 	public void parseHeader() throws IOException {
 		System.out.println("******* Parse Response *******");
 		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
+		boolean hasMoved =false;
 		// read the response
 		for (String line; (line = reader.readLine()) != null;) {
 			if (line.isEmpty())
 				break; // stop when headers are completed, ignore html
-			if (line.contains("Location") && line.contains("https")) {
+			if (line.contains("Moved") ) {
+				hasMoved=true;
+			}
+			if (line.contains("Location")) {
+				if(hasMoved){
+					int startOfHost = line.indexOf(".");
+					int endOfHost = line.length();
+					System.out.println(host+" has moved  ");
+					host = "www."+line.substring(startOfHost + 1, endOfHost);
+					System.out.println(" trying "+host+ " instead");
+					getSiteInfo();
+					break;
+				}
+				if(line.contains("https")){
 				resultLine.setHttps(true);
+				}
+			
 			}
 			if (line.contains("Strict-Transport-Security") || line.contains("strict-transport-security")) {
 				//String manipulation to get age of HSTS
