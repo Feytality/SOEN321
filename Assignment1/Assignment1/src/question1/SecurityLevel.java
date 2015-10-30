@@ -40,7 +40,11 @@ public class SecurityLevel {
 	 */
 	private static Map<String, Integer> sslVersion = new HashMap<String, Integer>(){
 		{
-			put("SSLv3", 1);
+			put("TLSv1.2", 3);
+			put("TLSv1.1", 2);
+			put("TLSv1", 1);
+			put("SSLv2", 0);
+			put("SSLv3", 0);
 		}
 	};
 

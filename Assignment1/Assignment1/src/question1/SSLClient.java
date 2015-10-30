@@ -1,8 +1,6 @@
 package question1;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -67,6 +65,7 @@ public class SSLClient {
 	 * Gets all the site information needed for a ResultLine.
 	 */
 	public void getSiteInfo() {
+		PrintWriter outputWriter = fu.getWriter();
 		try {
 			int attempt = 1;
 			boolean connected = connectToSite("www."+host, attempt);
@@ -76,21 +75,23 @@ public class SSLClient {
 				// Extract information from response.
 				parseHeader();
 								
-				// Find version of SSL
-				determineSSLVersion();
-	
 				// Re-enable RC4 and get SSL Session
 				reenableRC4();
 				SSLSession session = socket.getSession();
+				
+				// Find version of SSL
+				determineSSLVersion(session);
 				
 				// Determine certificate specific information.
 				// gets signature algorithm SHA256 etc
 				x509certificates = session.getPeerCertificateChain();
 				parseCertificate();
 				
-				
+				// Calculate the security level for the site.
 				SecurityLevel.calculateSecurityRank(resultLine);
+				
 				System.out.println("#####################################################");
+				outputWriter.println(resultLine.toString());
 				System.out.println(resultLine.toString());
 				System.out.println("#####################################################");
 			} else {
@@ -123,7 +124,7 @@ public class SSLClient {
 		// Variable which holds the return value of the method to avoid mutliple
 		// return statements.
 		boolean retVal = false;
-		PrintWriter writer = fu.getWriter();
+		PrintWriter outputWriter = fu.getWriter();
 		
 		try {
 			// First attempt to connect to the host using the SSL port 443.
@@ -131,7 +132,7 @@ public class SSLClient {
 			retVal = true;
 		} catch (UnknownHostException e) {
 			// This means that the site gave a 404 error
-			writer.println(resultLine.getRank() + "," + resultLine.getDomain() + ", COULD NOT CONNECT");
+			outputWriter.println(resultLine.getRank() + "," + resultLine.getDomain() + ", COULD NOT CONNECT");
 		} catch (ConnectException e) {
 			if (attempt < 4) {
 				System.out.println("RETRYING CONNECTION TO '" + host + "' (ATTEMPT " + attempt + ")");
@@ -164,7 +165,6 @@ public class SSLClient {
 	 * @throws IOException
 	 */
 	public void sendHeaderRequest() throws IOException {
-		System.out.println("******* Sending Request *******");
 		writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 		
 		writer.println("GET / HTTP/1.1");
@@ -173,9 +173,6 @@ public class SSLClient {
 		writer.println("User-Agent: Java");
 		writer.println("");
 		writer.flush();
-		
-		System.out.println("******* Response Received *******");
-		System.out.println();
 	}
 
 	/**
@@ -199,9 +196,9 @@ public class SSLClient {
 				if(hasMoved){
 					int startOfHost = line.indexOf(".");
 					int endOfHost = line.length();
-					System.out.println(host+" has moved  ");
-					host = "www."+line.substring(startOfHost + 1, endOfHost);
-					System.out.println(" trying "+host+ " instead");
+					System.out.println("www." + host + " has moved  ");
+					host = line.substring(startOfHost + 1, endOfHost);
+					System.out.println(" trying " + host + " instead");
 					getSiteInfo();
 					break;
 				}
@@ -243,15 +240,15 @@ public class SSLClient {
 	 * Prints Security details about a given host and files them into the result line obj
 	 */
 	public void parseCertificate() {
-		PrintWriter writer = fu.getWriter();
+		PrintWriter outputWriter = fu.getWriter();
 		
-		writer.println("******* Parse Certificate for " + host + " *******");
+		outputWriter.println("******* Parse Certificate for " + host + " *******");
 					
 		// don't know how to deal with the multiple lines
-		writer.println("Subject DN: " + x509certificates[0].getSubjectDN());
-		writer.println("Issuer DN: " + x509certificates[0].getIssuerDN());
-		writer.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
-		writer.println("Public key: " + x509certificates[0].getPublicKey());
+		outputWriter.println("Subject DN: " + x509certificates[0].getSubjectDN());
+		outputWriter.println("Issuer DN: " + x509certificates[0].getIssuerDN());
+		outputWriter.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
+		outputWriter.println("Public key: " + x509certificates[0].getPublicKey());
 		
 		resultLine.setSignatureAlgorithm(x509certificates[0].getSigAlgName());
 		String publicKey = x509certificates[0].getPublicKey().toString();
@@ -261,17 +258,14 @@ public class SSLClient {
 		try{
 			resultLine.setKeySize(Integer.parseInt(keySize));
 		} catch (Exception e) {
-			writer.println("Could not parse the key size: " + keySize);
+			outputWriter.println("Could not parse the key size: " + keySize);
 		}
-		writer.println("Key Type: " + resultLine.getKeyType());
-		writer.println("Key Size: " + resultLine.getKeySize());
+		outputWriter.println("Key Type: " + resultLine.getKeyType());
+		outputWriter.println("Key Size: " + resultLine.getKeySize());
 		
-		
-		writer.println(resultLine.toString());
-		writer.println("******* End Certificate *******");
-		writer.println();
-		
-		writer.close();
+		outputWriter.println(resultLine.toString());
+		outputWriter.println("******* End Certificate *******");
+		outputWriter.println();
 	}
 
 	/**
@@ -290,12 +284,7 @@ public class SSLClient {
 	/**
 	 * Determines the version of SSL used on the given site.
 	 */
-	private void determineSSLVersion() {
-		String[] enabledProtocols = socket.getEnabledProtocols();
-		for(String protocol : enabledProtocols) {
-			if(protocol.toUpperCase().contains("SSL")) {
-				resultLine.setSslVersion(protocol);
-			}
-		}
+	private void determineSSLVersion(SSLSession session) {
+		resultLine.setSslVersion(session.getProtocol());
 	}
 }
