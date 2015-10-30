@@ -94,9 +94,9 @@ public class SSLClient {
 				
 				System.out.println("#####################################################");
 				System.out.println(resultLine.toString());
+				
 				System.out.println("#####################################################");
 			}
-				
 				
 			
 		} catch (IOException ioe) {
@@ -230,26 +230,26 @@ public class SSLClient {
 			writer.println("******* Parse Certificate for " + host + " *******");
 						
 			// don't know how to deal with the multiple lines
-			for (int i = 0; i < x509certificates.length; i++) {
-				writer.println("Subject DN: " + x509certificates[i].getSubjectDN());
-				writer.println("Issuer DN: " + x509certificates[i].getIssuerDN());
-				writer.println("Signature Algorithm: " + x509certificates[i].getSigAlgName());
-				writer.println("Public key: " + x509certificates[i].getPublicKey());
-				
-				resultLine.setSignatureAlgorithm(x509certificates[i].getSigAlgName());
-				String publicKey = x509certificates[i].getPublicKey().toString();
-				
-				resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
-				String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
-				try{
-					resultLine.setKeySize(Integer.parseInt(keySize));
-				} catch (Exception e) {
-					writer.println("Could not parse the key size: " + keySize);
-				}
-				writer.println("Key Type: " + resultLine.getKeyType());
-				writer.println("Key Size: " + resultLine.getKeySize());
-			}
+			writer.println("Subject DN: " + x509certificates[0].getSubjectDN());
+			writer.println("Issuer DN: " + x509certificates[0].getIssuerDN());
+			writer.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
+			writer.println("Public key: " + x509certificates[0].getPublicKey());
 			
+			resultLine.setSignatureAlgorithm(x509certificates[0].getSigAlgName());
+			String publicKey = x509certificates[0].getPublicKey().toString();
+			
+			resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
+			String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
+			try{
+				resultLine.setKeySize(Integer.parseInt(keySize));
+			} catch (Exception e) {
+				writer.println("Could not parse the key size: " + keySize);
+			}
+			writer.println("Key Type: " + resultLine.getKeyType());
+			writer.println("Key Size: " + resultLine.getKeySize());
+			
+			SecurityLevel.calculateSecurityRank(resultLine);
+			writer.println(resultLine.toString());
 			writer.println("******* End Certificate *******");
 			writer.println();
 			
