@@ -27,12 +27,6 @@ public class ResultLine {
 	private int securityLevel; 
 
 	/**
-	 * This the empty constructor for the class.
-	 */
-	public ResultLine() {
-	}
-
-	/**
 	 * Two parameter constructor which takes a websites rank and domain.
 	 * 
 	 * @param	rank	The website's rank in the CSV file.
@@ -240,7 +234,7 @@ public class ResultLine {
 	@Override
 	public String toString() {
 		return rank + "," + domain + "," + isHttps + "," + sslVersion + "," + keyType + "," + keySize + ","
-				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong();
+				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong() + "," + securityLevel;
 	}
 
 }

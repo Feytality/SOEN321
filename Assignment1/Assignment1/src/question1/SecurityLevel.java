@@ -14,23 +14,24 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class SecurityLevel {
 	// Objects which determine the security level depending on the value.
+	
 	/**
 	 * Determines levels for websites with or without HTTPS.
 	 */
-	private static Map<String, Integer> https = new HashMap<String, Integer>(){
+	private static Map<Boolean, Integer> https = new HashMap<Boolean, Integer>(){
 		{
-			put("true", 2);
-			put("false", 1);
+			put(true, 2);
+			put(false, 1);
 		}
 	};
 
 	/**
 	 * Determines levels for websites with or without HSTS.
 	 */
-	private static Map<String, Integer> hsts = new HashMap<String, Integer>(){
+	private static Map<Boolean, Integer> hsts = new HashMap<Boolean, Integer>(){
 		{
-			put("true", 3);
-			put("false", 1);
+			put(true, 3);
+			put(false, 1);
 		}
 	};
 	

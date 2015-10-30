@@ -43,6 +43,8 @@ public class SSLClient {
 	
 	// Object representing the line to write back to a CSV file.
 	private ResultLine resultLine;
+	
+	FileUtility fu;
 
 	/**
 	 * Two parameter constructor which takes the rank and host of
@@ -55,6 +57,10 @@ public class SSLClient {
 		this.host = host;
 		resultLine = new ResultLine(rank, host);
 		sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+		
+		// Get the output file to write to.
+		fu = new FileUtility();
+		fu.open();
 	}
 
 	/**
@@ -67,19 +73,9 @@ public class SSLClient {
 
 			if(connected) {
 				sendHeaderRequest();
-	
 				// Extract information from response.
 				parseHeader();
-			} else {
-				System.out.println("Could not connect to domain '" + host + 
-									"'. This means the website is not using HTTPS.");
-				System.out.println();
-				
-				resultLine.setHttps(false);
-				resultLine.setHSTS(false);
-				resultLine.setHSTSAge(0);
-				resultLine.setHSTSLong(false);
-				
+								
 				// Find version of SSL
 				determineSSLVersion();
 	
@@ -92,13 +88,16 @@ public class SSLClient {
 				x509certificates = session.getPeerCertificateChain();
 				parseCertificate();
 				
+				
+				SecurityLevel.calculateSecurityRank(resultLine);
 				System.out.println("#####################################################");
 				System.out.println(resultLine.toString());
-				
 				System.out.println("#####################################################");
+			} else {
+					System.out.println("Could not connect to domain '" + host + 
+										"'. This means the website is not using HTTPS.");
+					System.out.println();
 			}
-				
-			
 		} catch (IOException ioe) {
 			System.out.println("Could not send request for domain '" + host + "'");
 			System.out.println();
@@ -106,6 +105,7 @@ public class SSLClient {
 		} catch (NullPointerException npe) {
 			System.out.println("Could not connect to domain '" + host + "'");
 			System.out.println();
+			npe.printStackTrace();
 		}
 	}
 
@@ -123,6 +123,7 @@ public class SSLClient {
 		// Variable which holds the return value of the method to avoid mutliple
 		// return statements.
 		boolean retVal = false;
+		PrintWriter writer = fu.getWriter();
 		
 		try {
 			// First attempt to connect to the host using the SSL port 443.
@@ -130,7 +131,7 @@ public class SSLClient {
 			retVal = true;
 		} catch (UnknownHostException e) {
 			// This means that the site gave a 404 error
-			e.printStackTrace();
+			writer.println(resultLine.getRank() + "," + resultLine.getDomain() + ", COULD NOT CONNECT");
 		} catch (ConnectException e) {
 			if (attempt < 4) {
 				System.out.println("RETRYING CONNECTION TO '" + host + "' (ATTEMPT " + attempt + ")");
@@ -146,7 +147,10 @@ public class SSLClient {
 			} else {
 				System.out.println("CONNECTION TO '" + host + "' IMPOSSIBLE");
 			}
-		} catch (IOException ioe) {
+		} catch (SSLHandshakeException ssle) {
+			retVal = true;
+		}
+		catch (IOException ioe) {
 			ioe.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -224,40 +228,35 @@ public class SSLClient {
 	 * Prints Security details about a given host and files them into the result line obj
 	 */
 	public void parseCertificate() {
-		try {
-			PrintWriter writer = new PrintWriter(new FileOutputStream(
-				    new File("./src/question1/certificate-info.txt"),true));
-			writer.println("******* Parse Certificate for " + host + " *******");
-						
-			// don't know how to deal with the multiple lines
-			writer.println("Subject DN: " + x509certificates[0].getSubjectDN());
-			writer.println("Issuer DN: " + x509certificates[0].getIssuerDN());
-			writer.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
-			writer.println("Public key: " + x509certificates[0].getPublicKey());
-			
-			resultLine.setSignatureAlgorithm(x509certificates[0].getSigAlgName());
-			String publicKey = x509certificates[0].getPublicKey().toString();
-			
-			resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
-			String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
-			try{
-				resultLine.setKeySize(Integer.parseInt(keySize));
-			} catch (Exception e) {
-				writer.println("Could not parse the key size: " + keySize);
-			}
-			writer.println("Key Type: " + resultLine.getKeyType());
-			writer.println("Key Size: " + resultLine.getKeySize());
-			
-			SecurityLevel.calculateSecurityRank(resultLine);
-			writer.println(resultLine.toString());
-			writer.println("******* End Certificate *******");
-			writer.println();
-			
-			writer.close();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
+		PrintWriter writer = fu.getWriter();
+		
+		writer.println("******* Parse Certificate for " + host + " *******");
+					
+		// don't know how to deal with the multiple lines
+		writer.println("Subject DN: " + x509certificates[0].getSubjectDN());
+		writer.println("Issuer DN: " + x509certificates[0].getIssuerDN());
+		writer.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
+		writer.println("Public key: " + x509certificates[0].getPublicKey());
+		
+		resultLine.setSignatureAlgorithm(x509certificates[0].getSigAlgName());
+		String publicKey = x509certificates[0].getPublicKey().toString();
+		
+		resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
+		String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
+		try{
+			resultLine.setKeySize(Integer.parseInt(keySize));
+		} catch (Exception e) {
+			writer.println("Could not parse the key size: " + keySize);
 		}
-
+		writer.println("Key Type: " + resultLine.getKeyType());
+		writer.println("Key Size: " + resultLine.getKeySize());
+		
+		
+		writer.println(resultLine.toString());
+		writer.println("******* End Certificate *******");
+		writer.println();
+		
+		writer.close();
 	}
 
 	/**
