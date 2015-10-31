@@ -234,7 +234,7 @@ public class ResultLine {
 	@Override
 	public String toString() {
 		return rank + "," + domain + "," + isHttps + "," + sslVersion + "," + keyType + "," + keySize + ","
-				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong() + "," + securityLevel;
+				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong() + ",Score" + securityLevel;
 	}
 
 }

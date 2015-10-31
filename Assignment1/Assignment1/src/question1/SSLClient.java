@@ -34,28 +34,31 @@ public class SSLClient {
 
 	// The port used for SSL
 	private int PORT = 443;
-	
-	// Variable which holds the host name of the website 
+
+	// Variable which holds the host name of the website
 	// the class is obtaining security information for
 	private String host = null;
-	
+
 	// Object representing the line to write back to a CSV file.
 	private ResultLine resultLine;
-	
+
+	int redirects=0;
 	FileUtility fu;
 
 	/**
-	 * Two parameter constructor which takes the rank and host of
-	 * a website to connect to.
+	 * Two parameter constructor which takes the rank and host of a website to
+	 * connect to.
 	 * 
-	 * @param	rank	The website's rank in the CSV file.
-	 * @param 	domain	The website's domain.
+	 * @param rank
+	 *            The website's rank in the CSV file.
+	 * @param domain
+	 *            The website's domain.
 	 */
 	public SSLClient(int rank, String host) {
 		this.host = host;
 		resultLine = new ResultLine(rank, host);
 		sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-		
+
 		// Get the output file to write to.
 		fu = new FileUtility();
 		fu.open();
@@ -68,37 +71,33 @@ public class SSLClient {
 		PrintWriter outputWriter = fu.getWriter();
 		try {
 			int attempt = 1;
-			boolean connected = connectToSite("www."+host, attempt);
+			connectToSite("www." + host, attempt);
+			sendHeaderRequest();
+			// Extract information from response.
+			parseHeader();
 
-			if(connected) {
-				sendHeaderRequest();
-				// Extract information from response.
-				parseHeader();
-								
-				// Re-enable RC4 and get SSL Session
-				reenableRC4();
-				SSLSession session = socket.getSession();
-				
-				// Find version of SSL
-				determineSSLVersion(session);
-				
-				// Determine certificate specific information.
-				// gets signature algorithm SHA256 etc
-				x509certificates = session.getPeerCertificateChain();
-				parseCertificate();
-				
-				// Calculate the security level for the site.
-				SecurityLevel.calculateSecurityRank(resultLine);
-				
-				System.out.println("#####################################################");
-				outputWriter.println(resultLine.toString());
-				System.out.println(resultLine.toString());
-				System.out.println("#####################################################");
-			} else {
-					System.out.println("Could not connect to domain '" + host + 
-										"'. This means the website is not using HTTPS.");
-					System.out.println();
-			}
+			// Re-enable RC4 and get SSL Session
+			reenableRC4();
+			SSLSession session = socket.getSession();
+
+			// Find version of SSL
+			determineSSLVersion(session);
+
+			// Determine certificate specific information.
+			// gets signature algorithm SHA256 etc
+			x509certificates = session.getPeerCertificateChain();
+			parseCertificate();
+
+			// Calculate the security level for the site.
+			SecurityLevel.calculateSecurityRank(resultLine);
+
+			System.out.println("#####################################################");
+			outputWriter.println(resultLine.toString());
+			System.out.println(resultLine.toString());
+			System.out.println("#####################################################");
+		} catch (SSLHandshakeException ssle) {
+			System.out.println("Handshake exception for '" + host + "' No https");
+			
 		} catch (IOException ioe) {
 			System.out.println("Could not send request for domain '" + host + "'");
 			System.out.println();
@@ -106,52 +105,50 @@ public class SSLClient {
 		} catch (NullPointerException npe) {
 			System.out.println("Could not connect to domain '" + host + "'");
 			System.out.println();
-			npe.printStackTrace();
+			outputWriter.println(resultLine.getRank() + "," + resultLine.getDomain() +" No Connection Available");
 		}
+		outputWriter.close();
 	}
 
 	/**
 	 * Connects to a site by opening a new SSL socket using the host and the
-	 * port. Attempts to reconnect on connection failure related to a refused connection
-	 * or a connection time out.
+	 * port. Attempts to reconnect on connection failure related to a refused
+	 * connection or a connection time out.
 	 * 
-	 * @param	host	The host name of the website to connect to.
-	 * @param 	attempt	The current number of attempts to connect to the host.
+	 * @param host
+	 *            The host name of the website to connect to.
+	 * @param attempt
+	 *            The current number of attempts to connect to the host.
 	 * 
-	 * @return	True if you are able to connect to the site, else false.
+	 * @return True if you are able to connect to the site, else false.
 	 */
 	public boolean connectToSite(String host, int attempt) {
 		// Variable which holds the return value of the method to avoid mutliple
 		// return statements.
 		boolean retVal = false;
 		PrintWriter outputWriter = fu.getWriter();
-		
+
 		try {
 			// First attempt to connect to the host using the SSL port 443.
 			socket = (SSLSocket) sf.createSocket(host, PORT);
 			retVal = true;
 		} catch (UnknownHostException e) {
 			// This means that the site gave a 404 error
-			outputWriter.println(resultLine.getRank() + "," + resultLine.getDomain() + ", COULD NOT CONNECT");
+			outputWriter.println(resultLine.getRank() + "," + resultLine.getDomain() + ", COULD NOT CONNECT INITIALLY");
 		} catch (ConnectException e) {
 			if (attempt < 4) {
 				System.out.println("RETRYING CONNECTION TO '" + host + "' (ATTEMPT " + attempt + ")");
-				new java.util.Timer().schedule( 
-						new java.util.TimerTask() {
-							@Override
-							public void run() {
-								connectToSite(host, attempt + 1);				  
-							}
-						}, 
-						3000 
-				);
+				new java.util.Timer().schedule(new java.util.TimerTask() {
+					@Override
+					public void run() {
+						connectToSite(host, attempt + 1);
+					}
+				}, 3000);
 			} else {
-				System.out.println("CONNECTION TO '" + host + "' IMPOSSIBLE");
-			}
+				System.out.println(resultLine.getRank() + "," + resultLine.getDomain() + "' CONNECTION IMPOSSIBLE DUE TO TIMEOUTS");}
 		} catch (SSLHandshakeException ssle) {
-			retVal = true;
-		}
-		catch (IOException ioe) {
+			System.out.println("Handshake exception for '" + host + "' No https");
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -166,7 +163,7 @@ public class SSLClient {
 	 */
 	public void sendHeaderRequest() throws IOException {
 		writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-		
+
 		writer.println("GET / HTTP/1.1");
 		writer.println("Host: " + host);
 		writer.println("Accept: */*");
@@ -181,34 +178,38 @@ public class SSLClient {
 	 * 
 	 * @throws IOException
 	 */
-	public void parseHeader() throws IOException {
+	public void parseHeader()  {
 		System.out.println("******* Parse Response *******");
-		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		boolean hasMoved =false;
+		try {
+			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		
+		boolean hasMoved = false;
 		// read the response
 		for (String line; (line = reader.readLine()) != null;) {
 			if (line.isEmpty())
 				break; // stop when headers are completed, ignore html
-			if (line.contains("Moved") ) {
-				hasMoved=true;
+			if (line.contains("Moved")) {
+				hasMoved = true;
 			}
 			if (line.contains("Location")) {
-				if(hasMoved){
-					int startOfHost = line.indexOf(".");
+				if (hasMoved&& redirects!=4) {
+					redirects++;
+					int startOfHost = line.indexOf("//");
 					int endOfHost = line.length();
+					System.out.println(line);
 					System.out.println("www." + host + " has moved  ");
-					host = line.substring(startOfHost + 1, endOfHost);
+					host = line.substring(startOfHost + 2, endOfHost);
 					System.out.println(" trying " + host + " instead");
 					getSiteInfo();
 					break;
 				}
-				if(line.contains("https")){
-				resultLine.setHttps(true);
+				if (line.contains("https")) {
+					resultLine.setHttps(true);
 				}
-			
+
 			}
 			if (line.contains("Strict-Transport-Security") || line.contains("strict-transport-security")) {
-				//String manipulation to get age of HSTS
+				// String manipulation to get age of HSTS
 				int startOfAge = line.indexOf("=");
 				int age = 0;
 				if (startOfAge != -1) {
@@ -218,53 +219,56 @@ public class SSLClient {
 						endOfAge = line.length();
 					}
 					age = Integer.parseInt(line.substring(startOfAge + 1, endOfAge));
-				}//end manipulation
-				
+				} // end manipulation
+
 				resultLine.setHSTS(true);
 				resultLine.setHSTSAge(age);
 			}
 			System.out.println(line);
 		}
-		
+
 		System.out.println("******* End Response *******");
 		System.out.println();
-		
+
 		// Close reader and writer objects
 		if (reader != null)
 			reader.close();
 		if (writer != null)
 			writer.close();
+		} catch (IOException e) {
+			System.out.println("Could not read header for "+ host);
+		}
 	}
 
 	/**
-	 * Prints Security details about a given host and files them into the result line obj
+	 * Prints Security details about a given host and files them into the result
+	 * line obj
 	 */
 	public void parseCertificate() {
 		PrintWriter outputWriter = fu.getWriter();
-		
-		outputWriter.println("******* Parse Certificate for " + host + " *******");
-					
+
+//		outputWriter.println("******* Parse Certificate for " + host + " *******");
+
 		// don't know how to deal with the multiple lines
-		outputWriter.println("Subject DN: " + x509certificates[0].getSubjectDN());
-		outputWriter.println("Issuer DN: " + x509certificates[0].getIssuerDN());
-		outputWriter.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
-		outputWriter.println("Public key: " + x509certificates[0].getPublicKey());
-		
+//		outputWriter.println("Subject DN: " + x509certificates[0].getSubjectDN());
+//		outputWriter.println("Issuer DN: " + x509certificates[0].getIssuerDN());
+//		outputWriter.println("Signature Algorithm: " + x509certificates[0].getSigAlgName());
+//		outputWriter.println("Public key: " + x509certificates[0].getPublicKey());
+
 		resultLine.setSignatureAlgorithm(x509certificates[0].getSigAlgName());
 		String publicKey = x509certificates[0].getPublicKey().toString();
-		
+
 		resultLine.setKeyType(publicKey.substring(0, publicKey.indexOf(',')));
-		String keySize = publicKey.substring(publicKey.indexOf(',')+1, publicKey.lastIndexOf("bits")).trim();
-		try{
+		String keySize = publicKey.substring(publicKey.indexOf(',') + 1, publicKey.lastIndexOf("bits")).trim();
+		try {
 			resultLine.setKeySize(Integer.parseInt(keySize));
 		} catch (Exception e) {
 			outputWriter.println("Could not parse the key size: " + keySize);
 		}
-		outputWriter.println("Key Type: " + resultLine.getKeyType());
-		outputWriter.println("Key Size: " + resultLine.getKeySize());
-		
-		outputWriter.println(resultLine.toString());
-		outputWriter.println("******* End Certificate *******");
+//		outputWriter.println("Key Type: " + resultLine.getKeyType());
+//		outputWriter.println("Key Size: " + resultLine.getKeySize());
+
+//		outputWriter.println("******* End Certificate *******");
 		outputWriter.println();
 	}
 
@@ -280,7 +284,7 @@ public class SSLClient {
 		newSuitesArray = newSuitesList.toArray(newSuitesArray);
 		socket.setEnabledCipherSuites(newSuitesArray);
 	}
-	
+
 	/**
 	 * Determines the version of SSL used on the given site.
 	 */
