@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This is the SecurityLevel class which contains all the object which help determine the
+ * This is the SecurityLevel class which contains all the objects which help determine the
  * rank of a given site using hash maps. The higher the rank, the more secure it is. It is also
  * responsible for taking a ResultLine and tallying up its' respective security level.
  * 
- * @author Felicia Santoro-Petti, Daniel Caterson
+ * @authors Felicia Santoro-Petti, Daniel Caterson
  *
  */
 @SuppressWarnings("serial")
 public class SecurityLevel {
+	// Data Members - Attributes
 	// Objects which determine the security level depending on the value.
-	
 	/**
 	 * Determines levels for websites with or without HTTPS.
 	 */
@@ -87,9 +87,16 @@ public class SecurityLevel {
 	};
 	
 	/**
-	 * Calculates the security 
+	 * Calculates the security level of a given site using the site's
+	 * known parameters. It takes into account all values seen in the 
+	 * ResultLine class. 
+	 * In this case, the key type is dependent on the key size, and depending
+	 * on the combination of the two, you will get a better or worse rating.
+	 * For example, the key type "Sun RSA public key" used in conjunction with
+	 * key size 4096 will receive a better rating than if using a key size of
+	 * 2048.
 	 * 
-	 * @param rl
+	 * @param	rl	The result line of the website.
 	 */
 	public static void calculateSecurityRank(ResultLine rl) {
 		int securityLevel = 0;

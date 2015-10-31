@@ -3,24 +3,23 @@ package question1;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.opencsv.CSVWriter;
-
 /**
  * Class which is responsible with manipulating the data from the
- * CSV file.
+ * CSV file. It will load the CSV file into a Map containing all the
+ * websites listed in the CSV file, so that these websites can be easily 
+ * accessed in the application.
  *  
- * @author Felicia Santoro-Petti, Daniel Caterson
+ * @authors Felicia Santoro-Petti, Daniel Caterson
  *
  */
 public class CsvUtility {
 	
-	// Instance variables
+	// Data Memebers
 	
 	/** 
 	 * Will contain all the data in the CSV file. 
@@ -28,7 +27,7 @@ public class CsvUtility {
 	 */
 	private Map<Integer, String> csvDAO = null;
 	
-	// Constructor
+	// Constructors
 
 	/**
 	 * No parameter constructor which creates a Map with
@@ -61,70 +60,45 @@ public class CsvUtility {
 		this.csvDAO = csvDAO;
 	}
 	
+	// Member Methods
+	
 	/**
-	 * Loads the CSV file data into a Map object which
-	 * can be used to look up websites according to their rank.
+	 * Loads the CSV file data into a Map object which can be used
+	 *  to look up websites according to their rank.
+	 * It takes into account the 3 necessary ranges that the program
+	 * must evaluate the list of 1 million websites by; 1-1000,
+	 * and the ranges obtained by our student number + 9999.
+	 * 
+	 * @param 	rangeStart1	This is the range which everyone in the class will
+	 * 						have the same, 1-1000, so range1 will be 1.
+	 * @param 	rangeStart2	The range associated with our student number
+	 * @param 	rangeStart3	The range associated with our student number.
 	 */
 	@SuppressWarnings("resource")
-	public void loadCsvDAO(int range1, int range2, int range3){
+	public void loadCsvDAO(int rangeStart1, int rangeStart2, int rangeStart3){
 		final String fileName = "./src/question1/top-1m_13-10-15.csv";
 		try {
 			String line = "";
-			FileInputStream fis = new FileInputStream(fileName);
+			// Open the CSV file and read from it.
+			BufferedReader fileContents = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
 	    
-			BufferedReader myInput = new BufferedReader(new InputStreamReader(fis));
-	    
-			while ((line = myInput.readLine()) != null) {
+			// Iterate over every line in the CSV file.
+			while ((line = fileContents.readLine()) != null) {
 			    String[] tokenVals = line.split(",");
 			    int rank = Integer.parseInt(tokenVals[0]);
-			    if ((rank >= range1 && rank < range1+999) || 
-			    	(rank >= range2 && rank < range2+9999) ||
-			    	(rank >= range3 && rank < range3+9999))
+			    // If it falls within the given ranges, add it to the website map.
+			    if ((rank >= rangeStart1 && rank <= rangeStart1+999) || 
+			    	(rank >= rangeStart2 && rank <= rangeStart2+9999) ||
+			    	(rank >= rangeStart3 && rank <= rangeStart3+9999))
 			    	csvDAO.put(rank, tokenVals[1]);
 	        }
 		} catch (FileNotFoundException fnfe) {
 			System.out.println("Could not find the specified file! Please be sure to get the latest"
 					+ " version of the top million websites.");
-			fnfe.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("There was a problem reading the CSV file containing the top million websites.");
 		}
-	    
 	    System.out.println("Successfully loaded CVS file.");
-	    writeCvs(1, 1000); // TODO remove this line, only here for now to test the function.
 	}
 	
-	// TODO rewrite this method to not use the opencsv dependency
-	/**
-	 * Writes to a CVS file about the different information about websites.
-	 * Each line in the CVS file will look like the following:
-	 * 
-	 * rank,domain,isHTTPS,SSLversion,key-type,key-size,signature-algorithm,isHSTS,isHSTSlong
-	 * 
-	 * @param	startRange	Starting rank of the websites to verify
-	 * @param 	endRange	Ending rank of the websites to verify
-	 */
-	public void writeCvs(int startRange, int endRange) {
-		// TODO Append to the end of the file for each range
-		CSVWriter writer = null;
-		try {
-			writer = new CSVWriter(new FileWriter("./src/question1/output.csv"), '\n');
-			
-			int counter = startRange;
-			do {
-				// TODO replace with toString for resultline object
-				String[] line = new String[1];
-				line[0] = counter + ","  + csvDAO.get(counter) + ","; //+ usesHttps(.get(counter));
-				System.out.println(line[0]);
-				
-				writer.writeNext(line);
-				counter++;
-			} while (counter <= endRange);
-			writer.close();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 }

@@ -8,23 +8,53 @@ import java.security.NoSuchAlgorithmException;
 import question1.CsvUtility;
 
 /**
- * Main
+ * Application which determines the security level of websites. For the purposes
+ * of this specific implementation, the program reads from a CSV file containing
+ * the stop one million website. In this case, this file was downloaded from the 
+ * following site: http://s3.amazonaws.com/alexa-static/top-1m.csv.zip on October
+ * 13th, 2015.
+ * The application will load this CSV file, and evaluate the sites within given 
+ * ranges.  It will evaluate the websites based on security attributes. Depending
+ * on the security attributes available to a certain website, this website will be
+ * given a security level ranking.  The higher the security level, the more secure
+ * the website is based on the possible security attributes.
  * 
- * @author Felicia Santoro-Petti, Daniel Caterson
+ * For SOEN 321.
+ * 
+ * 
+ * @authors Felicia Santoro-Petti - 26619657
+ * 			Daniel Caterson - 29746277
+ * 
+ * Date Created: October 13th, 2015
+ * Date Last Modified: October 31st, 2015
+ * 
+ * Assignment Number: 1
+ * Question Number: 2
  *
  */
 public class SecurityStatistics {
-	// TODO Empty the generated file every time the application starts
+	// Student IDs used to get range starts.
 	public static final String STUDENT_ID_1 = "26619657";
 	public static final String STUDENT_ID_2 = "29746277";
 	
+	/**
+	 * This is the driver class that contains the Main method required to run the
+	 * application. 
+	 * It makes calls to the CSV Utility class which will load the websites into
+	 * memory. It will then evaluate each website based on the required ranges.
+	 * (1-1000, 56300-66299, ) 
+	 *
+	 * @param	args	Command line arguments needed for the JVM, but not used in
+	 * 					this application.
+	 */
 	public static void main(String[] args) {
-		// Necessary for re-enabling RC4.
+		// Re-enabled RC4
 		java.security.Security.setProperty("jdk.tls.disabledAlgorithms", "");
 
 		// First range is the range the whole class must analyze: 1 to 1000
 		int startRange1 = 1; 
 		int endRange1 = 1000;
+		
 		// Second range based on first student ID: range2 to range2+9999
 		int startRange2 = getVideoRank(STUDENT_ID_1); 
 		int endRange2 = startRange2 + 9999;
@@ -37,24 +67,27 @@ public class SecurityStatistics {
 				startRange1 + "-" + endRange1 + ", " + 
 				startRange2 + "-" + endRange2 + ", " +
 				startRange3 + "-" + endRange3);
-
 		System.out.println();
-		CsvUtility cvs = new CsvUtility();
 		
+		// Create CVS Utility object to load the CSV file into memory.
+		CsvUtility cvs = new CsvUtility();
 		cvs.loadCsvDAO(startRange1, startRange2, startRange3);
 		
+		// Evaluate the websites based on the 3 different ranges.
+		
 		// Uses range 1-1000 which every student in the class must evaluate.
-		/*for(int i = 1; i < 1000; i++) {
+		/*for(int i = 431; i < 1000; i++) {
 			SSLClient client = new SSLClient(i, cvs.getCsvDAO().get(i)); 
 			client.getSiteInfo();
 		}*/
 		
 		// Uses ranges starting from the rank for STUDENT_ID_1 to STUDENT_ID_1 + 10,000
-		for(int i = getVideoRank(STUDENT_ID_1); i < getVideoRank(STUDENT_ID_1) + 10000; i++) {
+		//for(int i = 58337; i < getVideoRank(STUDENT_ID_1) + (10000-2037); i++) {
+		for(int i = 62244; i < 62299; i++) {
 			SSLClient client = new SSLClient(i, cvs.getCsvDAO().get(i)); 
 			client.getSiteInfo();
 		}
-		
+
 		// Uses ranges starting from the rank for STUDENT_ID_1 to STUDENT_ID_1 + 10,000
 		/*for(int i = getVideoRank(STUDENT_ID_2); i < getVideoRank(STUDENT_ID_2) + 10000; i++) {
 			SSLClient client = new SSLClient(i, cvs.getCsvDAO().get(i)); 
