@@ -94,10 +94,12 @@ public class SecurityLevel {
 	public static void calculateSecurityRank(ResultLine rl) {
 		int securityLevel = 0;
 		securityLevel += https.get(rl.isHttps())*hsts.get(rl.isHSTS());
-		securityLevel += sslVersion.get(rl.getSslVersion());
-		securityLevel += keyType.get(rl.getKeyType()) * keySize.get(rl.getKeySize());
-		securityLevel += signatureAlgorithm.get(rl.getSignatureAlgorithm());
-		
+		if (rl.getSslVersion() != "NONE")
+			securityLevel += sslVersion.get(rl.getSslVersion());
+		if (rl.getKeySize() != -1 && !rl.getKeyType().equals(""))
+			securityLevel += keyType.get(rl.getKeyType()) * keySize.get(rl.getKeySize());
+		if (!rl.getSignatureAlgorithm().equals(""))
+			securityLevel += signatureAlgorithm.get(rl.getSignatureAlgorithm());
 		
 		rl.setSecurityLevel(securityLevel);
 	}

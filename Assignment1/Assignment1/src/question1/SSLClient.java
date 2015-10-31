@@ -97,7 +97,16 @@ public class SSLClient {
 			System.out.println("#####################################################");
 		} catch (SSLHandshakeException ssle) {
 			System.out.println("Handshake exception for '" + host + "' No https");
-			
+		} catch (SSLPeerUnverifiedException sspue) {
+			// This is a case where the site is unable to identify itself, for example
+			// it might not support authentication. This gives the site the lowest possible
+			// security rank.
+			SecurityLevel.calculateSecurityRank(resultLine);
+			System.out.println("#####################################################");
+			System.out.println("SSL Peer Unverified Exception, host '" + host + "' has the lowest security score.");
+			outputWriter.println(resultLine.toString());
+			System.out.println(resultLine.toString());
+			System.out.println("#####################################################");
 		} catch (IOException ioe) {
 			System.out.println("Could not send request for domain '" + host + "'");
 			System.out.println();
@@ -269,7 +278,7 @@ public class SSLClient {
 //		outputWriter.println("Key Size: " + resultLine.getKeySize());
 
 //		outputWriter.println("******* End Certificate *******");
-		outputWriter.println();
+//		outputWriter.println();
 	}
 
 	/**

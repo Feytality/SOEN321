@@ -1,0 +1,20 @@
+56300,provogue.com No Connection Available
+56301,uwmedicine.org,false,TLSv1,Sun RSA public key,2048,SHA256withRSA,false,false,Score:14
+56302,state.al.us No Connection Available
+56303,codingbat.com No Connection Available
+56304,drzeke.com,false,NONE,NONE,-1,NONE,false,false,Score:1
+56305,thomascook.de, COULD NOT CONNECT INITIALLY
+56305,thomascook.de,false,TLSv1.2,Sun RSA public key,2048,SHA256withRSA,false,false,Score:16
+56306,chuapp.com No Connection Available
+56307,jihot.com No Connection Available
+56308,shmart.in,false,TLSv1.2,Sun RSA public key,2048,SHA256withRSA,false,false,Score:16
+56309,twwiki.com No Connection Available
+56310,descargarmp3.info No Connection Available
+56311,pepco.com,false,TLSv1.2,Sun RSA public key,2048,SHA1withRSA,false,false,Score:14
+56312,renpou.com No Connection Available
+56313,ferienwohnungen.de, COULD NOT CONNECT INITIALLY
+56313,ferienwohnungen.de,false,TLSv1,Sun RSA public key,2048,SHA256withRSA,false,false,Score:14
+56314,bancacrfirenze.it,false,TLSv1.2,Sun RSA public key,2048,SHA1withRSA,false,false,Score:14
+56315,rockettube.com,false,TLSv1.2,Sun EC public key,256,SHA256withECDSA,false,false,Score:10
+56316,xsjia.com,false,NONE,NONE,-1,NONE,false,false,Score:1
+56317,twayair.com,false,TLSv1,Sun RSA public key,2048,SHA1withRSA,false,false,Score:12

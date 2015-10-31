@@ -44,10 +44,10 @@ public class SecurityStatistics {
 		cvs.loadCsvDAO(startRange1, startRange2, startRange3);
 		
 		// Uses range 1-1000 which every student in the class must evaluate.
-		for(int i = 1; i < 1000; i++) {
+		/*for(int i = 1; i < 1000; i++) {
 			SSLClient client = new SSLClient(i, cvs.getCsvDAO().get(i)); 
 			client.getSiteInfo();
-		}
+		}*/
 		
 		// Uses ranges starting from the rank for STUDENT_ID_1 to STUDENT_ID_1 + 10,000
 		for(int i = getVideoRank(STUDENT_ID_1); i < getVideoRank(STUDENT_ID_1) + 10000; i++) {
@@ -56,10 +56,10 @@ public class SecurityStatistics {
 		}
 		
 		// Uses ranges starting from the rank for STUDENT_ID_1 to STUDENT_ID_1 + 10,000
-		for(int i = getVideoRank(STUDENT_ID_2); i < getVideoRank(STUDENT_ID_2) + 10000; i++) {
+		/*for(int i = getVideoRank(STUDENT_ID_2); i < getVideoRank(STUDENT_ID_2) + 10000; i++) {
 			SSLClient client = new SSLClient(i, cvs.getCsvDAO().get(i)); 
 			client.getSiteInfo();
-		}
+		}*/
 	}
 	
 	/**

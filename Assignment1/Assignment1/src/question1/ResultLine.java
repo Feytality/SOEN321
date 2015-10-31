@@ -233,8 +233,14 @@ public class ResultLine {
 	 */
 	@Override
 	public String toString() {
+		if (keyType == "") 
+			keyType = "NONE";
+		
+		if (signatureAlgorithm == "")
+			signatureAlgorithm = "NONE";
+		
 		return rank + "," + domain + "," + isHttps + "," + sslVersion + "," + keyType + "," + keySize + ","
-				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong() + ",Score" + securityLevel;
+				+ signatureAlgorithm + "," + isHSTS + "," + isHSTSLong() + ",Score:" + securityLevel;
 	}
 
 }
