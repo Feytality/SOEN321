@@ -6,8 +6,8 @@ import java.math.BigInteger;
 
 
 /**
- * Goes through process of making sure process works 
- * @author Cat
+ * Goes through process of making sure steps to break OFB works 
+ * @authors Felicia Santoro-Petti, Daniel Caterson
  *
  */
 public class AESDriver {
@@ -23,17 +23,19 @@ public class AESDriver {
 		
 		
 		
-		
-		System.out.println("Original ecription");
+		//OFB a User Plaintxt
 		ofb.encipher();
-		
-		ofb.printOriginalEncryption();		
-		System.out.println("Retrieve ecription");
-		ofb.attack(PA);
-		
-		System.out.println("Verify ecription");
+		//Break the OFB just performed
+		ofb.attack(PU);
+		//Show that you would get the same result if you are an admin getting a cookie at the same time
 		ofbAttack.encipher();
-		ofbAttack.printOriginalEncryption();
+		String CU=ofb.getCiphertxt();
+		String CA=ofbAttack.getCiphertxt();
+		
+		System.out.println("Base 64 encoded User Ciphertext");
+		System.out.println(StringUtil.encode(StringUtil.StrToByte(CU, CU.length())));
+		System.out.println("Base 64 encoded Attacker/Admin Ciphertext");
+		System.out.println(StringUtil.encode(StringUtil.StrToByte(CA, CA.length())));
 		
 	}
 

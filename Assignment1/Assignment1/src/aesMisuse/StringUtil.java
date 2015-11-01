@@ -1,29 +1,27 @@
 package aesMisuse;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
+import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 /**
- * Facilitates the string to byte[] operations
- * @author Cat
+ * Facilitates the string to byte[] and vice versa operations
+ * @authors Felicia Santoro-Petti, Daniel Caterson
  *
  */
-public  class StringUtil {
-
-	
+public  class StringUtil {	
 	/**
-	 * turns strings into byte arrays. will truncate is a certain lenght requested
+	 * turns strings into byte arrays with UTF* encoding. will truncate is a certain length requested
 	 * @param str
 	 * @param size
 	 * @return
 	 */
 	public static byte[] StrToByte(String str,int size){
 		byte [] convertedString=null;
-		try {
-			convertedString= str.substring(0, size).getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		convertedString= str.substring(0, size).getBytes(StandardCharsets.UTF_8);
 		return convertedString;
 	}
 	/**
@@ -47,8 +45,53 @@ public  class StringUtil {
 	public static void printbytearr(byte[] arr){
 		System.out.println("");
 		for (int i = 0; i < arr.length; i++) {
-			System.out.print(arr[i]);
+			System.out.print((char)arr[i]);
 		}
 		
 	}
+	
+	/**
+	 * Returns the string representation of a byte array
+	 * @param arr
+	 * @return
+	 */
+	public static String toString(byte[] arr){
+		String build="";
+		for (int i = 0; i < arr.length; i++) {
+			build+=(char)arr[i];
+		}
+		
+	return build;
+	}
+	/**
+	 * Decode  stream in base 64
+	 * @param text
+	 * @return
+	 */
+	public static byte[] decode(byte[] text){		
+		  // Get bytes from string
+		byte[] decoded=null;
+		
+		try {
+			decoded = Base64.decode(text);			
+			
+		} catch (Base64DecodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return decoded;
+	}
+		/**
+		 *  encode  stream in base 64
+		 * @param text
+		 * @return
+		 */
+	public static String encode(byte[] text){		
+		  // Get bytes from string
+		String encoded=null;		
+		encoded = Base64.encode(text);
+		return encoded;
+	}
+		
+	
 }

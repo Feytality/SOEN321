@@ -2,7 +2,11 @@ package aesMisuse;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-
+/**
+ * Simulates an Output Feedback Block cipher
+ * @authors Felicia Santoro-Petti, Daniel Caterson
+ *
+ */
 public class OFB {
 	private byte[] key;
 	private byte[] iV;
@@ -12,7 +16,7 @@ public class OFB {
 	private int BLOCK_SIZE = 16;
 	private byte[] encryption;
 	private byte[][] endENC;
-
+	private String ciphertext;
 	/**
 	 * sets up object to begin OFB
 	 * @param bit128Key
@@ -75,9 +79,10 @@ public class OFB {
 	public void encipher() {
 		for (int i = 0; i < blocks; i++) {
 			CU[i] = StringUtil.XOR(encryption, PU[i]);
+			ciphertext+=StringUtil.toString(CU[i]);
 			endENC[i]=encryption;
 			iV = encryption;
-			encryptKeyIV();
+			//encryptKeyIV();
 			
 			
 		}
@@ -98,7 +103,6 @@ public class OFB {
 		for(int j = 0;j <blocks;j++){
 			ENC[j]=StringUtil.XOR(PAPrime[j], PU[j]);			
 		}		
-		printHackedEncryption(ENC);
 		
 		
 	}
@@ -125,9 +129,7 @@ public class OFB {
 			}
 			
 		}
-		for(int i = 0;i <blocks;i++){
-			StringUtil.printbytearr(PA[i]);			
-		}
+		
 return PA;
 	}
 	
@@ -150,5 +152,10 @@ return PA;
 			StringUtil.printbytearr(endENC[i]);			
 		}
 	}
+	
+	public String getCiphertxt(){		
+		return ciphertext;
+	}
+	
 	
 }
