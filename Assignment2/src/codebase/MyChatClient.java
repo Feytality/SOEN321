@@ -200,6 +200,7 @@ class MyChatClient extends ChatClient {
 	 */
 	private String getChatLogPath() {
 		return "log/chatlog-" + curUser + ".json";
+		// peer pressures
 	}
 
 	/**
