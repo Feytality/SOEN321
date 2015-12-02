@@ -14,7 +14,10 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -40,6 +43,16 @@ class MyChatClient extends ChatClient {
 								// preserve
 		super(IsA); // IsA indicates whether it's client A or B
 		startComm(); // starts the communication
+		KeyGenerator keyGen;
+		try {
+			keyGen = KeyGenerator.getInstance("AES");
+		
+		keyGen.init(256); // for example
+		SecretKey secretKey = keyGen.generateKey();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/** The current user that is logged in on this client **/
@@ -200,7 +213,6 @@ class MyChatClient extends ChatClient {
 	 */
 	private String getChatLogPath() {
 		return "log/chatlog-" + curUser + ".json";
-		// peer pressures
 	}
 
 	/**

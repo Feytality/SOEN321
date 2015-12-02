@@ -6,9 +6,9 @@ package codebase;
  *
  */
 public enum ChatRequest {
-LOGIN,
-LOGOUT,
-CHAT,
-RESPONSE,
-CHAT_ACK
+	LOGIN,
+	LOGOUT,
+	CHAT,
+	RESPONSE,
+	CHAT_ACK
 }
