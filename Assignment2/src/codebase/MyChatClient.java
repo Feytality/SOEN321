@@ -46,9 +46,8 @@ class MyChatClient extends ChatClient {
 		KeyGenerator keyGen;
 		try {
 			keyGen = KeyGenerator.getInstance("AES");
-		
-		keyGen.init(256); // for example
-		SecretKey secretKey = keyGen.generateKey();
+			keyGen.init(128); // for example
+			SecretKey secretKey = keyGen.generateKey();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
