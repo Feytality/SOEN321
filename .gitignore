@@ -11,8 +11,6 @@ local.properties
 .settings/
 .loadpath
 
-# Eclipse Core
-.project
 
 # External tool builders
 .externalToolBuilders/
@@ -30,14 +28,14 @@ local.properties
 .factorypath
 
 # PDT-specific
-.buildpath
+
 
 # sbteclipse plugin
 .target
 
 # TeXlipse plugin
 .texlipse
-*.class
+
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
