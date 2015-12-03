@@ -66,6 +66,11 @@ class MyChatClient extends ChatClient {
 		p.uid = uid;
 		curPass=pwd;
 		SerializeNSend(p);
+		
+		String crypt=AsgUtils.encrpyt("Create key and cipherCreate key and cipherCreate key and cipher", "");		
+		System.out.println(crypt);
+		crypt=AsgUtils.decrypt(crypt, "");
+		System.out.println(crypt);
 	}
 
 	public void challengeResponse() {
