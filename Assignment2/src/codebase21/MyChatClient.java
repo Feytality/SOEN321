@@ -67,10 +67,9 @@ class MyChatClient extends ChatClient {
 		curPass=pwd;
 		SerializeNSend(p);
 		
-		String crypt=AsgUtils.encrpyt("Create key and cipherCreate key and cipherCreate key and cipher", "");		
-		System.out.println(crypt);
-		crypt=AsgUtils.decrypt(crypt, "");
-		System.out.println(crypt);
+		
+		
+		
 	}
 
 	public void challengeResponse() {
@@ -177,6 +176,7 @@ class MyChatClient extends ChatClient {
 				File f = new File(this.getChatLogPath());
 				if (f.exists() && !f.isDirectory()) {
 					try {
+						
 						ins = new FileInputStream(this.getChatLogPath());
 						jsonReader = Json.createReader(ins);
 						chatlog = jsonReader.readArray();
@@ -243,6 +243,8 @@ class MyChatClient extends ChatClient {
 			// The chatlog file is named after both the client and the user
 			// logged in
 
+			
+			
 			OutputStream out = new FileOutputStream(this.getChatLogPath());
 			JsonWriter writer = Json.createWriter(out);
 			writer.writeArray(chatlog);

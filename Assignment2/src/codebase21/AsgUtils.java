@@ -1,5 +1,9 @@
 package codebase21;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -57,7 +61,6 @@ public class AsgUtils {
 			// encrypt the text
 			cipher.init(Cipher.ENCRYPT_MODE, aesKey, iv);
 			byte[] encrypted = cipher.doFinal(text.getBytes());
-			// System.err.println(DatatypeConverter.printBase64Binary(encrypted));
 			Base64.getEncoder().encode(encrypted);
 			return DatatypeConverter.printBase64Binary(encrypted);
 
@@ -84,7 +87,6 @@ public class AsgUtils {
 			byte[] original = DatatypeConverter.parseBase64Binary(text);
 			// decrypt the text
 			String decrypted = new String(cipher.doFinal(original));
-			//System.err.println(decrypted);
 			return decrypted;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -93,5 +95,40 @@ public class AsgUtils {
 	}
 
 	
-
+	/**
+	 * Simple code to get mac address of pc running application
+	 * http://www.mkyong.com/java/how-to-get-mac-address-in-java/
+	 * @return 
+	 */
+	public static String getMac(){
+		InetAddress ip;
+		try {
+			ip = InetAddress.getLocalHost();
+		
+		
+		
+		NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+			
+		byte[] mac = network.getHardwareAddress();
+			
+			
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < mac.length; i++) {
+			sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));		
+		}
+		return sb.toString();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static String shortenMac(String mac){
+		return mac.replaceFirst("-", "");		
+		 
+	}
 }
