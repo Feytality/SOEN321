@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -14,9 +15,11 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.security.KeyFactory;
+import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -256,18 +259,81 @@ public class AsgUtils {
 		return null;
 	}
 	
-	public static PrivateKey getPrivateKey2(String filename) throws Exception {
+//	public static PrivateKey getPrivateKey2(String filename) throws Exception {
+//
+//        File f = new File(filename);
+//        FileInputStream fis = new FileInputStream(f);
+//        DataInputStream dis = new DataInputStream(fis);
+//        byte[] keyBytes = new byte[(int) f.length()];
+//        dis.readFully(keyBytes);
+//        dis.close();
+//
+//        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+//        KeyFactory kf = KeyFactory.getInstance("RSA");
+//        return kf.generatePrivate(spec);
+//    }
+	
+	
+//	private static byte[] encrypt(Key pubkey, String text) {
+//	    try {
+//	        Cipher rsa;
+//	        rsa = Cipher.getInstance("RSA");
+//	        rsa.init(Cipher.ENCRYPT_MODE, pubkey);
+//	        return rsa.doFinal(text.getBytes());
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	    }
+//	    return null;
+//	}
+//
+//
+//	private static String decrypt(Key decryptionKey, byte[] buffer) {
+//	    try {
+//	        Cipher rsa;
+//	        rsa = Cipher.getInstance("RSA");
+//	        rsa.init(Cipher.DECRYPT_MODE, decryptionKey);
+//	        byte[] utf8 = rsa.doFinal(buffer);
+//	        return new String(utf8, "UTF8");
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	    }
+//	    return null;
+//	}
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(f);
-        DataInputStream dis = new DataInputStream(fis);
-        byte[] keyBytes = new byte[(int) f.length()];
-        dis.readFully(keyBytes);
-        dis.close();
+	 public static byte[] encrypt(String text, PublicKey key) {
+		    byte[] cipherText = null;
+		    try {
+		      // get an RSA cipher object and print the provider
+		      final Cipher cipher = Cipher.getInstance("RSA");
+		      // encrypt the plain text using the public key
+		      cipher.init(Cipher.ENCRYPT_MODE, key);
+		      cipherText = cipher.doFinal(text.getBytes());
+		    } catch (Exception e) {
+		      e.printStackTrace();
+		    }
+		    return cipherText;
+		  }
 
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(spec);
-    }
+		
+		  public static String decrypt(byte[] text, PrivateKey key) {
+		    byte[] dectyptedText = null;
+		    try {
+		      // get an RSA cipher object and print the provider
+		      final Cipher cipher = Cipher.getInstance("RSA");
 
+		      // decrypt the text using the private key
+		      cipher.init(Cipher.DECRYPT_MODE, key);
+		      dectyptedText = cipher.doFinal(text);
+
+		    } catch (Exception ex) {
+		      ex.printStackTrace();
+		    }
+
+		    return new String(dectyptedText);
+		  }
+
+	
 }
+
+
+

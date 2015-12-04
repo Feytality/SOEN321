@@ -15,6 +15,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -58,6 +60,19 @@ class MyChatClient extends ChatClient {
 	// Have to get the chosen file form the user
 	//System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
 
+	
+	/**
+	 * Gives the path of the local pub key file (user-based)
+	 */
+	private String getPublicKeyPath() {
+		return "resources/" + curUser + "/"+curUser.toLowerCase()+".der";
+	}
+	/**
+	 * Gives the path of the local priv key file (user-based)
+	 */
+	private String getPrivateKeyPath() {
+		return "resources/" + curUser + "/"+curUser.toLowerCase()+".pkcs8";
+	}
 	/**
 	 * Someone clicks on the "Login" button
 	 */
@@ -67,12 +82,13 @@ class MyChatClient extends ChatClient {
 		p.uid = uid;
 		p.password = pwd;
 		SerializeNSend(p);
-		System.out.println("PUBLIC");
-		String publicKey =AsgUtils.getPublicKey("resources/Alice/alice.der").toString();
-		System.out.println(publicKey);
+		RSAPublicKey publicKey =AsgUtils.getPublicKey("resources/Alice/alice.der");
+		RSAPrivateKey privateKey =AsgUtils.getPrivateKey("resources/Alice/alice.pkcs8");
 		
-		System.out.println("PRIVATE");
-		System.out.println(AsgUtils.getPrivateKey("resources/Alice/alice.pk8").toString());
+		byte[] enc  = AsgUtils.encrypt("holy shit plz work!", publicKey);
+		
+		System.out.println(AsgUtils.decrypt(enc, privateKey));
+		
 
 		
 		
