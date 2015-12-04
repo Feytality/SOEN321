@@ -206,6 +206,15 @@ class MyChatClient extends ChatClient {
 	}
 
 	/**
+	 * Gives the path of the local chat history file (user-based)
+	 */
+	private String getPrivateKeyPath() {
+		
+		//TODO: set tu user call+ path
+		return null;
+	}
+	
+	/**
 	 * Methods dealing with local processing
 	 */
 
