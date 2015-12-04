@@ -14,8 +14,7 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -46,7 +45,7 @@ class MyChatClient extends ChatClient {
 
 	/** The current user that is logged in on this client **/
 	public String curUser = "";
-	
+
 	public String curPass = "";
 
 	/** The Json array storing the internal history state */
@@ -60,16 +59,14 @@ class MyChatClient extends ChatClient {
 	 * Someone clicks on the "Login" button
 	 */
 	public void LoginRequestReceived(String uid, String pwd) {
-		//before asking to log in, user asks to be challenged for knowledge of secret
+		// before asking to log in, user asks to be challenged for knowledge of
+		// secret
 		ChatPacket p = new ChatPacket();
 		p.request = ChatRequest.BEGINCR;
 		p.uid = uid;
-		curPass=pwd;
+		curPass = pwd;
 		SerializeNSend(p);
-		
-		
-		
-		
+
 	}
 
 	public void challengeResponse() {
@@ -176,8 +173,8 @@ class MyChatClient extends ChatClient {
 				File f = new File(this.getChatLogPath());
 				if (f.exists() && !f.isDirectory()) {
 					try {
-						
-						ins = new FileInputStream(this.getChatLogPath());
+						String chatlogstr= decryptChatLog();//decrypt based on MAC
+						ins = new ByteArrayInputStream(chatlogstr.getBytes(StandardCharsets.UTF_8));			
 						jsonReader = Json.createReader(ins);
 						chatlog = jsonReader.readArray();
 					} catch (FileNotFoundException e) {
@@ -194,11 +191,11 @@ class MyChatClient extends ChatClient {
 				}
 				RefreshList();
 
-			} else if (p.request == ChatRequest.CHALLENGE) {
-				//User responds to servers challenge as means to login
-				p.password=	AsgUtils.simpleHash(curPass, p.nonce+1);
-				p.request= ChatRequest.LOGIN;
-				SerializeNSend(p);				
+			} else if (p.request == ChatRequest.CHALLENGE) {//NEW
+				// User responds to servers challenge as means to login
+				p.password = AsgUtils.simpleHash(curPass, p.nonce + 1);
+				p.request = ChatRequest.LOGIN;
+				SerializeNSend(p);
 			}
 
 			else if (p.request == ChatRequest.RESPONSE && p.success.equals("LOGOUT")) {
@@ -226,7 +223,7 @@ class MyChatClient extends ChatClient {
 	 * Gives the path of the local chat history file (user-based)
 	 */
 	private String getChatLogPath() {
-		return "log/chatlog-" + curUser + ".json";
+		return "log/Q2.1chatlog-" + curUser + ".json";
 	}
 
 	/**
@@ -236,20 +233,20 @@ class MyChatClient extends ChatClient {
 	/**
 	 * This method saves the Json array storing the chat log back to file
 	 */
-	public void SaveChatHistory() {
+	public void SaveChatHistory() {//modified to read file into byte array for security feature
 		if (curUser.equals(""))
 			return;
 		try {
 			// The chatlog file is named after both the client and the user
 			// logged in
+			FileOutputStream fos = new FileOutputStream(new File(this.getChatLogPath()));
+			String log = encryptChatLog();			
+			byte[] bytes = log.getBytes();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream(bytes.length);
+			baos.write(bytes, 0, bytes.length);
+			baos.writeTo(fos);
 
-			
-			
-			OutputStream out = new FileOutputStream(this.getChatLogPath());
-			JsonWriter writer = Json.createWriter(out);
-			writer.writeArray(chatlog);
-			writer.close();
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
@@ -312,11 +309,54 @@ class MyChatClient extends ChatClient {
 		RefreshList();
 
 	}
-	
-	
-		
-		
-	}
-	
-	
 
+	
+	/**
+	 * Encrypt the chatlog by dumping the json into a string and running Aes on it based on mac address
+	 * @return
+	 */
+	public String encryptChatLog() {//NEW
+		String chatlogString = "";
+		for (int i = 0; i < chatlog.size(); i++) {
+			if(i!=0){
+				chatlogString+=",";
+			}
+			chatlogString += chatlog.getJsonObject(i).toString();
+		}
+		String macAddress = AsgUtils.getMac();
+		macAddress= AsgUtils.shortenMac(macAddress);		
+		chatlogString = AsgUtils.encrpyt(chatlogString, macAddress);
+		return chatlogString;
+	}
+
+	
+	/**
+	 * Depcrypts the chatlog, leaving it in a string representing Json, Aes decryption based on mac address
+	 * @return
+	 * @throws IOException
+	 */
+	public String decryptChatLog() throws IOException {//NEW
+		InputStream ins = null;
+		
+			ins = new FileInputStream(this.getChatLogPath());
+
+			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+			int nRead;
+			byte[] data = new byte[16384];
+
+			while ((nRead = ins.read(data, 0, data.length)) != -1) {
+				buffer.write(data, 0, nRead);
+			}
+
+			buffer.flush();
+			String decoded = new String(buffer.toByteArray(), "UTF-8");
+			String macAddress = AsgUtils.getMac();
+			macAddress= AsgUtils.shortenMac(macAddress);
+			decoded=AsgUtils.decrypt(decoded, macAddress);
+			decoded ="["+decoded+"]";
+			ins.close();
+			return decoded;
+	}
+
+}
