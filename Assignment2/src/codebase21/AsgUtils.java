@@ -127,6 +127,11 @@ public class AsgUtils {
 		return null;
 	}
 	
+	/**
+	 * Removes the first "-" from mac address to turn it into an appropriate key size for ENC/DEC
+	 * @param mac
+	 * @return
+	 */
 	public static String shortenMac(String mac){
 		return mac.replaceFirst("-", "");		
 		 
