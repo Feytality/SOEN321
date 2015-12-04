@@ -336,8 +336,7 @@ class MyChatClient extends ChatClient {
 	 * @throws IOException
 	 */
 	public String decryptChatLog() throws IOException {//NEW
-		InputStream ins = null;
-		
+			InputStream ins = null;		
 			ins = new FileInputStream(this.getChatLogPath());
 
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
