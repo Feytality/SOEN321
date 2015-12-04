@@ -63,7 +63,8 @@ class MyChatClient extends ChatClient {
 		p.request = ChatRequest.LOGIN;
 		p.uid = uid;
 		p.password = pwd;
-
+		// Have to get the chosen file form the user
+		System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
 		SerializeNSend(p);
 	}
 	
@@ -208,10 +209,9 @@ class MyChatClient extends ChatClient {
 	/**
 	 * Gives the path of the local chat history file (user-based)
 	 */
-	private String getPrivateKeyPath() {
-		
-		//TODO: set tu user call+ path
-		return null;
+	private String getPrivateKeyPath(String username) {
+		// The private key is found in the pkcs8 file.
+		return "/resources/" + username + "/" + username + ".pk8";
 	}
 	
 	/**
