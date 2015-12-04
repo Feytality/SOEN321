@@ -68,15 +68,11 @@ class MyChatClient extends ChatClient {
 		p.password = pwd;
 		SerializeNSend(p);
 		System.out.println("PUBLIC");
-		String publicKey =AsgUtils.getPublicKey("resources/Bob/bob.der").toString();
+		String publicKey =AsgUtils.getPublicKey("resources/Alice/alice.der").toString();
 		System.out.println(publicKey);
+		
 		System.out.println("PRIVATE");
-		try {
-			System.out.println(AsgUtils.getPrivateKey2("resources/Bob/bob.pk8").toString());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		System.out.println(AsgUtils.getPrivateKey("resources/Alice/alice.pk8").toString());
 
 		
 		
