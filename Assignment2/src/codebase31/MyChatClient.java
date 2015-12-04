@@ -54,6 +54,9 @@ class MyChatClient extends ChatClient {
 	/**
 	 * Actions received from UI
 	 */
+	
+	// Have to get the chosen file form the user
+	//System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
 
 	/**
 	 * Someone clicks on the "Login" button
@@ -63,9 +66,16 @@ class MyChatClient extends ChatClient {
 		p.request = ChatRequest.LOGIN;
 		p.uid = uid;
 		p.password = pwd;
-		// Have to get the chosen file form the user
-		System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
 		SerializeNSend(p);
+		System.out.println("PUBLIC");
+		String publicKey =AsgUtils.getPublicKey("resources/Alice/alice.der").toString();
+		System.out.println(publicKey);
+		AsgUtils.encrpyt("Baconsphere", publicKey);
+		System.out.println("PRIVATE");
+		System.out.println(AsgUtils.getPrivateKey("resources/Alice/alice.pk8").toString());
+
+		
+		
 	}
 	
 	/**

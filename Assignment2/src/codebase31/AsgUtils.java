@@ -159,7 +159,7 @@ public class AsgUtils {
 
 	}
 
-	public static RSAPrivateKey loadPrivateKey(String path) {
+	public static RSAPrivateKey getPrivateKey(String path) {
 		InputStream ins = null;
 		try {
 			ins = new FileInputStream(path);
@@ -169,8 +169,9 @@ public class AsgUtils {
 			while ((nRead = ins.read(data, 0, data.length)) != -1) {
 				buffer.write(data, 0, nRead);
 			}
-			buffer.flush();
+			buffer.flush();			
 			byte[] keyArr = buffer.toByteArray();
+			
 			KeyFactory kf = KeyFactory.getInstance("RSA");
 			KeySpec keySpec = new PKCS8EncodedKeySpec(keyArr);
 			RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(keySpec);
