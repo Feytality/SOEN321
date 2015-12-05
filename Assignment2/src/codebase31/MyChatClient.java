@@ -14,12 +14,9 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -52,72 +49,80 @@ class MyChatClient extends ChatClient {
 
 	/** The Json array storing the internal history state */
 	JsonArray chatlog;
+	
+	private byte[] userCert = new byte[16384];
+	private String userPrivateKeyPath = "";
+	
+	private final String SERVER_PATH = "resources/Server/server.der";
 
 	/**
 	 * Actions received from UI
 	 */
-	
+
 	// Have to get the chosen file form the user
-	//System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
+	// System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
 
 	
-	/**
-	 * Gives the path of the local pub key file (user-based)
-	 */
-	private String getPublicKeyPath() {
-		return "resources/" + curUser + "/"+curUser.toLowerCase()+".der";
-	}
+
 	/**
 	 * Gives the path of the local priv key file (user-based)
 	 */
 	private String getPrivateKeyPath() {
-		return "resources/" + curUser + "/"+curUser.toLowerCase()+".pkcs8";
+		return "resources/" + curUser + "/" + curUser.toLowerCase() + ".pkcs8";
 	}
+
+	/**
+	 * Gives the path of the local priv key file (user-based)
+	 */
+	private String getCertificatePath() {
+		return "resources/" + curUser + "/" + curUser.toLowerCase() + ".crt";
+	}
+
 	/**
 	 * Someone clicks on the "Login" button
 	 */
 	public void LoginRequestReceived(String uid, String pwd) {
 		ChatPacket p = new ChatPacket();
-		p.request = ChatRequest.LOGIN;
+		p.request = ChatRequest.BEGINCR;
 		p.uid = uid;
+		p.data = userCert;
 		p.password = pwd;
+
 		SerializeNSend(p);
-		RSAPublicKey publicKey =AsgUtils.getPublicKey("resources/Alice/alice.der");
-		RSAPrivateKey privateKey =AsgUtils.getPrivateKey("resources/Alice/alice.pkcs8");
-		
-		byte[] enc  = AsgUtils.encrypt("holy shit plz work!", publicKey);
-		
-		System.out.println(AsgUtils.decrypt(enc, privateKey));
-		
 
 		
-		
 	}
-	
+
 	/**
 	 * Callback invoked when the certificate file is selected
-	 * @param path Selected certificate file's path
+	 * 
+	 * @param path
+	 *            Selected certificate file's path
 	 */
 	public void FileLocationReceivedCert(File path) {
-		// TODO
+		userCert = AsgUtils.getFileAsByteArray(path.getPath());
 	}
-	
+
 	/**
 	 * Callback invoked when the private key file is selected
-	 * @param path Selected private key file's path
+	 * 
+	 * @param path
+	 *            Selected private key file's path
 	 */
 	public void FileLocationReceivedPriv(File path) {
-		// TODO 
+		userPrivateKeyPath = path.getPath();
+		System.out.println("I clicked the private key bitch " + path.getPath());
 	}
-	
+
 	/**
-	 * Callback invoked when an authentication mode is selected. 
-	 * @param IsPWD True if password-based (false if certificate-based).
+	 * Callback invoked when an authentication mode is selected.
+	 * 
+	 * @param IsPWD
+	 *            True if password-based (false if certificate-based).
 	 */
 	public void ReceivedMode(boolean IsPWD) {
 		// TODO
 	}
-
 
 	/**
 	 * Someone clicks on the "Logout" button
@@ -125,13 +130,14 @@ class MyChatClient extends ChatClient {
 	public void LogoutRequestReceived() {
 		ChatPacket p = new ChatPacket();
 		p.request = ChatRequest.LOGOUT;
-
 		SerializeNSend(p);
 	}
 
 	/**
 	 * Someone clicks on the "Send" button
-	 * @param message Message to be sent (user's level)
+	 * 
+	 * @param message
+	 *            Message to be sent (user's level)
 	 */
 	public void ChatRequestReceived(byte[] message) {
 		ChatPacket p = new ChatPacket();
@@ -164,9 +170,11 @@ class MyChatClient extends ChatClient {
 	 */
 
 	/**
-	 * Callback invoked when a packet has been received from the server
-	 * (as the client only talks with the server, but not the other client)
-	 * @param buf Incoming message
+	 * Callback invoked when a packet has been received from the server (as the
+	 * client only talks with the server, but not the other client)
+	 * 
+	 * @param buf
+	 *            Incoming message
 	 */
 	public void PacketfromServer(byte[] buf) {
 		ByteArrayInputStream is = new ByteArrayInputStream(buf);
@@ -201,7 +209,7 @@ class MyChatClient extends ChatClient {
 						System.err.println("Chatlog file could not be created or opened.");
 					}
 				}
-				
+
 				RefreshList();
 
 			} else if (p.request == ChatRequest.RESPONSE && p.success.equals("LOGOUT")) {
@@ -216,6 +224,16 @@ class MyChatClient extends ChatClient {
 				// This was sent by us and now it's confirmed by the server, add
 				// it to chat history
 				Add1Message(curUser, p.uid, p.data);
+			} else if (p.request == ChatRequest.CHALLENGE) {
+				String message = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(userPrivateKeyPath));
+
+				if (message != null) {
+					System.out.println("User decrypted received"+ message);
+					p.data = AsgUtils.encrypt(message, AsgUtils.getPublicKey(SERVER_PATH));
+					p.request= ChatRequest.LOGIN;
+					SerializeNSend(p);
+
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -224,7 +242,7 @@ class MyChatClient extends ChatClient {
 		}
 
 	}
-	
+
 	/**
 	 * Gives the path of the local chat history file (user-based)
 	 */
@@ -232,14 +250,7 @@ class MyChatClient extends ChatClient {
 		return "log/chatlog-" + curUser + ".json";
 	}
 
-	/**
-	 * Gives the path of the local chat history file (user-based)
-	 */
-	private String getPrivateKeyPath(String username) {
-		// The private key is found in the pkcs8 file.
-		return "/resources/" + username + "/" + username + ".pk8";
-	}
-	
+
 	/**
 	 * Methods dealing with local processing
 	 */
@@ -266,7 +277,9 @@ class MyChatClient extends ChatClient {
 
 	/**
 	 * Similar to the one in MyChatServer, serializes and send the Java object
-	 * @param p ChatPacket to serialize and send
+	 * 
+	 * @param p
+	 *            ChatPacket to serialize and send
 	 */
 	private void SerializeNSend(ChatPacket p) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -294,10 +307,14 @@ class MyChatClient extends ChatClient {
 	}
 
 	/**
-	 * Adds a message to the internal's client state 
-	 * @param from From whom the message comes from
-	 * @param to To whom the messaged is addressed
-	 * @param buf Message
+	 * Adds a message to the internal's client state
+	 * 
+	 * @param from
+	 *            From whom the message comes from
+	 * @param to
+	 *            To whom the messaged is addressed
+	 * @param buf
+	 *            Message
 	 */
 	private void Add1Message(String from, String to, byte[] buf) {
 		JsonArrayBuilder builder = Json.createArrayBuilder();

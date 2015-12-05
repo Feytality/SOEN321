@@ -10,6 +10,8 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.security.PublicKey;
+import java.util.UUID;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -38,6 +40,11 @@ class MyChatServer extends ChatServer {
 	 **/
 	String statA = "";
 	String statB = "";
+	
+	private UUID aliceAuth;
+	private UUID bobAuth;
+	
+	private final String SERVER_PRIV_KEY_PATH = "resources/Server/server.pkcs8";
 
 	// In Constructor, the user database is loaded.
 	MyChatServer() {
@@ -68,40 +75,44 @@ class MyChatServer extends ChatServer {
 			in = new ObjectInputStream(is);
 			Object o = in.readObject();
 			ChatPacket p = (ChatPacket) o;
-			
+
 			if (p.request == ChatRequest.LOGIN) {
+				// Check if we got the message back correctly.
+				String dec = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(SERVER_PRIV_KEY_PATH));
+				boolean isValid = false;
+				System.out.println(IsA);
+				if(IsA) {
+					System.out.println("decrpt :" + dec + " aliceAuth " + aliceAuth);
+					if (dec.equals(aliceAuth.toString())) {
+						System.out.println(p.uid+" Decrypted "+dec);
+						isValid = true;
+					}
+				} else {
+					if (dec.equals(bobAuth.toString())) {
+						isValid = true;
+					}
+				}
 				
-				// We want to go through all records
-				for (int i = 0; i < database.size(); i++) {
-					
-					JsonObject l = database.getJsonObject(i);
-					
-					// When both uid and pwd match
-					if (l.getString("uid").equals(p.uid)
-							&& l.getString("password").equals(p.password)) {
-						
-						// We do not allow one user to be logged in on multiple
-						// clients
-						if (p.uid.equals(IsA ? statB : statA))
-							continue;
-						
-						// Update the corresponding login status
-						if (IsA) {
-							statA = l.getString("uid");
-						} else {
-							statB = l.getString("uid");
-						}
-						
-						// Update the UI to indicate this
-						UpdateLogin(IsA, l.getString("uid"));
-						
-						// Inform the client that it was successful
-						RespondtoClient(IsA, "LOGIN");
-						
-						break;
+				if(isValid) {
+//					if (p.uid.equals(IsA ? statB : statA))
+//						continue;
+
+					// Update the corresponding login status
+					if (IsA) {
+						statA = p.uid;
+						System.out.println(p.uid+" must update status ");
+					} else {
+						statB = p.uid;
 					}
 
+					// Update the UI to indicate this
+					UpdateLogin(IsA, p.uid);
+
+					// Inform the client that it was successful
+					RespondtoClient(IsA, "LOGIN");
 				}
+
+			
 
 				if ((IsA ? statA : statB).equals("")) {
 					// Oops, this means a failure, we tell the client so
@@ -115,7 +126,7 @@ class MyChatServer extends ChatServer {
 				}
 				UpdateLogin(IsA, "");
 				RespondtoClient(IsA, "LOGOUT");
-				
+
 			} else if (p.request == ChatRequest.CHAT) {
 				// This is a chat message
 
@@ -130,6 +141,39 @@ class MyChatServer extends ChatServer {
 					// chat history
 					SerializeNSend(IsA, p);
 				}
+			} else if (p.request == ChatRequest.BEGINCR) {
+				String username = AsgUtils.parseCertficateToString(p.data);
+				// check to see if user exists
+				// We want to go through all records
+				for (int i = 0; i < database.size(); i++) {
+					JsonObject l = database.getJsonObject(i);
+
+					if (l.getString("uid").equals(username)) {
+						PublicKey userPubKey = AsgUtils.getPublicKey(getPublicKeyPath(username));
+						byte[] enc;
+						
+						if(IsA) {
+							aliceAuth = UUID.randomUUID();
+							System.out.println("Found the user sending the challenge to "+username);
+							enc = AsgUtils.encrypt(aliceAuth.toString(), userPubKey);
+							System.out.println("Auth is "+aliceAuth.toString());
+
+						} else {
+							bobAuth = UUID.randomUUID();
+							enc = AsgUtils.encrypt(bobAuth.toString(), userPubKey);
+						}
+						p.uid=username;
+						p.data = enc;
+						p.request = ChatRequest.CHALLENGE;
+						SerializeNSend(IsA, p);
+					}
+				}
+
+				if ((IsA ? statA : statB).equals("")) {
+					// Oops, this means a failure, we tell the client so
+					RespondtoClient(IsA, "");
+				}
+				
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -194,4 +238,11 @@ class MyChatServer extends ChatServer {
 		SerializeNSend(IsA, p);
 	}
 
+	/**
+	 * Gives the path of the local pub key file (user-based)
+	 */
+	private String getPublicKeyPath(String username) {
+		return "resources/" + username + "/" + username.toLowerCase() + ".der";
+	}
+	
 }

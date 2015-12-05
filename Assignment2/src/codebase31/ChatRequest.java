@@ -6,6 +6,8 @@ package codebase31;
  *
  */
 public enum ChatRequest {
+	BEGINCR,
+	CHALLENGE,
 	LOGIN,
 	LOGOUT,
 	CHAT,
