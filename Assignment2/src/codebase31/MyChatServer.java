@@ -44,6 +44,9 @@ class MyChatServer extends ChatServer {
 	private UUID aliceAuth;
 	private UUID bobAuth;
 	
+	private PublicKey alicePubKey;
+	private PublicKey bobPubKey;
+	
 	private final String SERVER_PRIV_KEY_PATH = "resources/Server/server.pkcs8";
 
 	// In Constructor, the user database is loaded.
@@ -80,11 +83,8 @@ class MyChatServer extends ChatServer {
 				// Check if we got the message back correctly.
 				String dec = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(SERVER_PRIV_KEY_PATH));
 				boolean isValid = false;
-				System.out.println(IsA);
 				if(IsA) {
-					System.out.println("decrpt :" + dec + " aliceAuth " + aliceAuth);
 					if (dec.equals(aliceAuth.toString())) {
-						System.out.println(p.uid+" Decrypted "+dec);
 						isValid = true;
 					}
 				} else {
@@ -100,7 +100,6 @@ class MyChatServer extends ChatServer {
 					// Update the corresponding login status
 					if (IsA) {
 						statA = p.uid;
-						System.out.println(p.uid+" must update status ");
 					} else {
 						statB = p.uid;
 					}
@@ -132,13 +131,35 @@ class MyChatServer extends ChatServer {
 
 				// Whoever is sending it must be already logged in
 				if ((IsA && statA != "") || (!IsA && statB != "")) {
+					// Decrypt using server's private key
+					String dec = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(SERVER_PRIV_KEY_PATH));
+					// Re-encrypt using recipient's public key.
+					PublicKey recipient;
+					if (IsA) {
+						recipient = bobPubKey;
+					} else {
+						recipient = alicePubKey;
+					}
+					buf=AsgUtils.encrypt(dec, recipient);
+					
+					ChatPacket p2 = new ChatPacket();
+					p2.request = ChatRequest.CHAT;
+					p2.uid = "Server";
+					p2.data=buf;
 					// Forward the original packet to the recipient
-					SendtoClient(!IsA, buf);
+//					SendtoClient(!IsA, buf);
+					SerializeNSend(!IsA, p2);
 					p.request = ChatRequest.CHAT_ACK;
 					p.uid = (IsA ? statB : statA);
 
 					// Flip the uid and send it back to the sender for updating
 					// chat history
+					if (IsA) {
+						recipient = alicePubKey;
+					} else {
+						recipient = bobPubKey;
+					}
+					p.data= AsgUtils.encrypt(dec, recipient);
 					SerializeNSend(IsA, p);
 				}
 			} else if (p.request == ChatRequest.BEGINCR) {
@@ -150,15 +171,16 @@ class MyChatServer extends ChatServer {
 
 					if (l.getString("uid").equals(username)) {
 						PublicKey userPubKey = AsgUtils.getPublicKey(getPublicKeyPath(username));
+						
 						byte[] enc;
 						
 						if(IsA) {
+							alicePubKey = userPubKey;
 							aliceAuth = UUID.randomUUID();
-							System.out.println("Found the user sending the challenge to "+username);
 							enc = AsgUtils.encrypt(aliceAuth.toString(), userPubKey);
-							System.out.println("Auth is "+aliceAuth.toString());
 
 						} else {
+							bobPubKey = userPubKey;
 							bobAuth = UUID.randomUUID();
 							enc = AsgUtils.encrypt(bobAuth.toString(), userPubKey);
 						}

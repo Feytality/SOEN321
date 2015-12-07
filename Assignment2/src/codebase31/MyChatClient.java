@@ -143,6 +143,10 @@ class MyChatClient extends ChatClient {
 		ChatPacket p = new ChatPacket();
 		p.request = ChatRequest.CHAT;
 		p.uid = curUser;
+		
+		// Encrypt the message sent.
+		System.out.println(new String(message));
+		message = AsgUtils.encrypt(new String(message), AsgUtils.getPublicKey(SERVER_PATH));
 		p.data = message;
 		SerializeNSend(p);
 	}
@@ -218,11 +222,17 @@ class MyChatClient extends ChatClient {
 				curUser = "";
 				UpdateMessages(null);
 			} else if (p.request == ChatRequest.CHAT && !curUser.equals("")) {
+				// Decrypt using user's private key
+				String dec = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(userPrivateKeyPath));
+				System.out.println(dec);
+				p.data = dec.getBytes();
 				// A new chat message received
 				Add1Message(p.uid, curUser, p.data);
 			} else if (p.request == ChatRequest.CHAT_ACK && !curUser.equals("")) {
 				// This was sent by us and now it's confirmed by the server, add
 				// it to chat history
+				String dec = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(userPrivateKeyPath));
+				p.data = dec.getBytes();
 				Add1Message(curUser, p.uid, p.data);
 			} else if (p.request == ChatRequest.CHALLENGE) {
 				String message = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(userPrivateKeyPath));
