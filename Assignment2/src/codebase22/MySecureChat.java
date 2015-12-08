@@ -1,6 +1,7 @@
 package codebase22;
 
 import java.awt.EventQueue;
+
 import infrastructure.SecureChat;
 
 /**

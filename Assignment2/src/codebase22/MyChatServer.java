@@ -42,7 +42,7 @@ class MyChatServer extends ChatServer {
 	// In Constructor, the user database is loaded.
 	MyChatServer() {
 		try {
-			InputStream in = new FileInputStream("database.json");
+			InputStream in = new FileInputStream("database-hashed.json");
 			JsonReader jsonReader = Json.createReader(in);
 			database = jsonReader.readArray();
 
@@ -76,28 +76,31 @@ class MyChatServer extends ChatServer {
 
 					JsonObject l = database.getJsonObject(i);
 
-					// When both uid and pwd match
-					if (l.getString("uid").equals(p.uid) && l.getString("password").equals(p.password)) {
+					// If the uid is the same
+					if (l.getString("uid").equals(p.uid)) {
+						// check if the pwd and the salt hashed is equal to the pwd field in the database.
+						if(l.getString("password").equals(AsgUtils.simpleHash(p.password, l.getString("salt")))) {
+							// We do not allow one user to be logged in on multiple
+							// clients
+							if (p.uid.equals(IsA ? statB : statA))
+								continue;
 
-						// We do not allow one user to be logged in on multiple
-						// clients
-						if (p.uid.equals(IsA ? statB : statA))
-							continue;
+							// Update the corresponding login status
+							if (IsA) {
+								statA = l.getString("uid");
+							} else {
+								statB = l.getString("uid");
+							}
 
-						// Update the corresponding login status
-						if (IsA) {
-							statA = l.getString("uid");
-						} else {
-							statB = l.getString("uid");
+							// Update the UI to indicate this
+							UpdateLogin(IsA, l.getString("uid"));
+
+							// Inform the client that it was successful
+							RespondtoClient(IsA, "LOGIN");
+
+							break;
 						}
-
-						// Update the UI to indicate this
-						UpdateLogin(IsA, l.getString("uid"));
-
-						// Inform the client that it was successful
-						RespondtoClient(IsA, "LOGIN");
-
-						break;
+						
 					}
 
 				}
