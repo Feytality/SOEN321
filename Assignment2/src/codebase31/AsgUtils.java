@@ -60,10 +60,13 @@ public class AsgUtils {
 	}
 
 	/**
-	 * Simple code to get mac address of pc running application
+	 * Simple code to retrieve the MAC address of the PC running the
+	 * application.
+	 * 
+	 * Please refer to the following:
 	 * http://www.mkyong.com/java/how-to-get-mac-address-in-java/
 	 * 
-	 * @return
+	 * @return The MAC address of the PC running the application.
 	 */
 	public static String getMac() {
 		InetAddress ip;
@@ -101,9 +104,20 @@ public class AsgUtils {
 
 	}
 
+	/**
+	 * Gets a private key given a file path. It will assume that the file in
+	 * this path is in fact a private key file (.pkcs8).
+	 * 
+	 * @param path
+	 *            The path to private key file.
+	 * 
+	 * @return The private key at the given file path.
+	 */
 	public static RSAPrivateKey getPrivateKey(String path) {
 		InputStream ins = null;
+
 		try {
+			// Read the Private Key file.
 			ins = new FileInputStream(path);
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			int nRead;
@@ -112,12 +126,16 @@ public class AsgUtils {
 				buffer.write(data, 0, nRead);
 			}
 			buffer.flush();
+			ins.close();
+			// Convert what was read to a byte array.
 			byte[] keyArr = buffer.toByteArray();
 
+			// Create the private key using the byte array created from reading
+			// the private key file's contents.
 			KeyFactory kf = KeyFactory.getInstance("RSA");
 			KeySpec keySpec = new PKCS8EncodedKeySpec(keyArr);
 			RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(keySpec);
-			ins.close();
+
 			return privateKey;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -128,17 +146,30 @@ public class AsgUtils {
 		} catch (InvalidKeySpecException e) {
 			e.printStackTrace();
 		}
+
 		return null;
 	}
 
+	/**
+	 * Gets a public key given a file path. It will assume that the file in this
+	 * path is in fact a public key file (.der).
+	 * 
+	 * @param path
+	 *            The path to public key file.
+	 * 
+	 * @return publicKey The public key at the given file path.
+	 */
 	public static RSAPublicKey getPublicKey(String path) {
-
 		FileInputStream fis;
+
 		try {
+			// Read the Public Key file at the given path and generate a X509
+			// certificate
 			fis = new FileInputStream(path);
 			CertificateFactory cf = CertificateFactory.getInstance("X.509");
 			Certificate cert = cf.generateCertificate(fis);
 
+			// Create a public key object based on the certificate.
 			RSAPublicKey publicKey = (RSAPublicKey) cert.getPublicKey();
 			return publicKey;
 		} catch (FileNotFoundException e) {
@@ -146,12 +177,27 @@ public class AsgUtils {
 		} catch (CertificateException e) {
 			e.printStackTrace();
 		}
+
 		return null;
 	}
 
+	/**
+	 * Gets the user name from the certificate at the given path. It will assume
+	 * that the file in this path is in fact a certificate file (.cert).
+	 * 
+	 * Please refer to the following:
+	 * http://stackoverflow.com/questions/13200326/java-how-do-you-extract-
+	 * issued-to-or-user-from-a-ssl-cert-within-an-httpreques
+	 * 
+	 * @param path
+	 *            Path to the certificate file.
+	 * @return The username of the owner of the certificate.
+	 */
 	public static String getUserFromCertificate(String path) {
 		InputStream ins = null;
+
 		try {
+			// Read the Certificate file.
 			ins = new FileInputStream(path);
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			int nRead;
@@ -160,14 +206,22 @@ public class AsgUtils {
 				buffer.write(data, 0, nRead);
 			}
 			buffer.flush();
+
+			// Convert contents of the certificate to a byte array.
 			byte[] keyArr = buffer.toByteArray();
 
+			// Create a X.509 certificate based on the contents of the
+			// certificate file.
 			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 			InputStream in = new ByteArrayInputStream(keyArr);
 			X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
+
+			// Get the name of the certificate owner by iterating through the
+			// information given in the certificate.
 			String name = cert.getSubjectX500Principal().getName();
 			String username = "";
 			LdapName ldapName = null;
+
 			try {
 				ldapName = new LdapName(name);
 			} catch (InvalidNameException e) {
@@ -188,9 +242,20 @@ public class AsgUtils {
 		} catch (CertificateException e) {
 			e.printStackTrace();
 		}
+
 		return null;
 	}
 
+	/**
+	 * Encrypts text based on the given public key.
+	 * 
+	 * @param text
+	 *            The text to encrypt.
+	 * @param key
+	 *            The public key to use when encrypting.
+	 *            
+	 * @return The encrypted text represented as a byte array.
+	 */
 	public static byte[] encrypt(String text, PublicKey key) {
 		byte[] cipherText = null;
 		try {
@@ -214,12 +279,12 @@ public class AsgUtils {
 			// decrypt the text using the private key
 			cipher.init(Cipher.DECRYPT_MODE, key);
 			dectyptedText = cipher.doFinal(text);
-			
+
 			return new String(dectyptedText);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
-		}		
+		}
 	}
 
 	public static byte[] getFileAsByteArray(String path) {
@@ -268,7 +333,6 @@ public class AsgUtils {
 
 			return username;
 		} catch (CertificateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;

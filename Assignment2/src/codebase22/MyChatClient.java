@@ -14,10 +14,7 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
