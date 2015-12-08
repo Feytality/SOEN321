@@ -140,20 +140,18 @@ class MyChatServer extends ChatServer {
 					} else {
 						recipient = alicePubKey;
 					}
-					buf=AsgUtils.encrypt(dec, recipient);
-					
+					buf=AsgUtils.encrypt(dec, recipient);//en					
 					ChatPacket p2 = new ChatPacket();
 					p2.request = ChatRequest.CHAT;
 					p2.uid = "Server";
 					p2.data=buf;
 					// Forward the original packet to the recipient
-//					SendtoClient(!IsA, buf);
 					SerializeNSend(!IsA, p2);
-					p.request = ChatRequest.CHAT_ACK;
-					p.uid = (IsA ? statB : statA);
-
+					
 					// Flip the uid and send it back to the sender for updating
 					// chat history
+					p.request = ChatRequest.CHAT_ACK;
+					p.uid = (IsA ? statB : statA);
 					if (IsA) {
 						recipient = alicePubKey;
 					} else {

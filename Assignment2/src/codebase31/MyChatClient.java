@@ -60,7 +60,6 @@ class MyChatClient extends ChatClient {
 	 */
 
 	// Have to get the chosen file form the user
-	// System.out.println(AsgUtils.getUserFromCertificate("resources/Alice/alice.crt"));
 
 	
 
@@ -111,7 +110,6 @@ class MyChatClient extends ChatClient {
 	 */
 	public void FileLocationReceivedPriv(File path) {
 		userPrivateKeyPath = path.getPath();
-		System.out.println("I clicked the private key bitch " + path.getPath());
 	}
 
 	/**
@@ -143,9 +141,7 @@ class MyChatClient extends ChatClient {
 		ChatPacket p = new ChatPacket();
 		p.request = ChatRequest.CHAT;
 		p.uid = curUser;
-		
-		// Encrypt the message sent.
-		System.out.println(new String(message));
+		//encrypt talk to server
 		message = AsgUtils.encrypt(new String(message), AsgUtils.getPublicKey(SERVER_PATH));
 		p.data = message;
 		SerializeNSend(p);
@@ -224,7 +220,6 @@ class MyChatClient extends ChatClient {
 			} else if (p.request == ChatRequest.CHAT && !curUser.equals("")) {
 				// Decrypt using user's private key
 				String dec = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(userPrivateKeyPath));
-				System.out.println(dec);
 				p.data = dec.getBytes();
 				// A new chat message received
 				Add1Message(p.uid, curUser, p.data);
@@ -238,7 +233,6 @@ class MyChatClient extends ChatClient {
 				String message = AsgUtils.decrypt(p.data, AsgUtils.getPrivateKey(userPrivateKeyPath));
 
 				if (message != null) {
-					System.out.println("User decrypted received"+ message);
 					p.data = AsgUtils.encrypt(message, AsgUtils.getPublicKey(SERVER_PATH));
 					p.request= ChatRequest.LOGIN;
 					SerializeNSend(p);
