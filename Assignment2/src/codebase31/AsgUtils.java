@@ -31,6 +31,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 public class AsgUtils {
+	
 	/**
 	 * Hashes a password and a nonce using md5, fast and effective
 	 * 
@@ -39,9 +40,9 @@ public class AsgUtils {
 	 * @return
 	 */
 	public static String simpleHash(String passwordToHash, int nonce) {
-
 		String comboPass = nonce + passwordToHash;
 		String generatedPassword = null;
+		
 		try {
 
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -56,6 +57,7 @@ public class AsgUtils {
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
+		
 		return generatedPassword;
 	}
 
@@ -72,7 +74,6 @@ public class AsgUtils {
 		InetAddress ip;
 		try {
 			ip = InetAddress.getLocalHost();
-
 			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
 
 			byte[] mac = network.getHardwareAddress();
@@ -83,12 +84,11 @@ public class AsgUtils {
 			}
 			return sb.toString();
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SocketException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		return null;
 	}
 
@@ -101,7 +101,6 @@ public class AsgUtils {
 	 */
 	public static String shortenMac(String mac) {
 		return mac.replaceFirst("-", "");
-
 	}
 
 	/**
@@ -182,78 +181,13 @@ public class AsgUtils {
 	}
 
 	/**
-	 * Gets the user name from the certificate at the given path. It will assume
-	 * that the file in this path is in fact a certificate file (.cert).
-	 * 
-	 * Please refer to the following:
-	 * http://stackoverflow.com/questions/13200326/java-how-do-you-extract-
-	 * issued-to-or-user-from-a-ssl-cert-within-an-httpreques
-	 * 
-	 * @param path
-	 *            Path to the certificate file.
-	 * @return The username of the owner of the certificate.
-	 */
-	public static String getUserFromCertificate(String path) {
-		InputStream ins = null;
-
-		try {
-			// Read the Certificate file.
-			ins = new FileInputStream(path);
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			int nRead;
-			byte[] data = new byte[16384];
-			while ((nRead = ins.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nRead);
-			}
-			buffer.flush();
-
-			// Convert contents of the certificate to a byte array.
-			byte[] keyArr = buffer.toByteArray();
-
-			// Create a X.509 certificate based on the contents of the
-			// certificate file.
-			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-			InputStream in = new ByteArrayInputStream(keyArr);
-			X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
-
-			// Get the name of the certificate owner by iterating through the
-			// information given in the certificate.
-			String name = cert.getSubjectX500Principal().getName();
-			String username = "";
-			LdapName ldapName = null;
-
-			try {
-				ldapName = new LdapName(name);
-			} catch (InvalidNameException e) {
-				throw new RuntimeException(e);
-			}
-			for (Rdn rdn : ldapName.getRdns()) {
-				String type = rdn.getType();
-				if ("CN".equals(type)) {
-					username = (String) rdn.getValue();
-				}
-			}
-
-			return username;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (CertificateException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
-	/**
 	 * Encrypts text based on the given public key.
 	 * 
 	 * @param text
 	 *            The text to encrypt.
 	 * @param key
 	 *            The public key to use when encrypting.
-	 *            
+	 * 
 	 * @return The encrypted text represented as a byte array.
 	 */
 	public static byte[] encrypt(String text, PublicKey key) {
@@ -270,13 +204,23 @@ public class AsgUtils {
 		return cipherText;
 	}
 
+	/**
+	 * Decrypts text based on the given private key.
+	 * 
+	 * @param text
+	 *            The text to decrypt.
+	 * @param key
+	 *            The private key to use when decrypting.
+	 * 
+	 * @return The plaintext of the encrypted string.
+	 */
 	public static String decrypt(byte[] text, PrivateKey key) {
 		byte[] dectyptedText = null;
 		try {
-			// get an RSA cipher object and print the provider
+			// Get an RSA cipher object and print the provider
 			final Cipher cipher = Cipher.getInstance("RSA");
 
-			// decrypt the text using the private key
+			// Decrypt the text using the private key
 			cipher.init(Cipher.DECRYPT_MODE, key);
 			dectyptedText = cipher.doFinal(text);
 
@@ -287,9 +231,21 @@ public class AsgUtils {
 		}
 	}
 
+	/**
+	 * Gets the file in the given path and returns its' contents as a byte
+	 * array.
+	 * 
+	 * @param path
+	 *            The path to the file.
+	 *            
+	 * @return A byte array representing the contents of the file with the given
+	 *         path.
+	 */
 	public static byte[] getFileAsByteArray(String path) {
 		InputStream ins = null;
+		
 		try {
+			// Read the file at the given path.
 			ins = new FileInputStream(path);
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			int nRead;
@@ -298,39 +254,58 @@ public class AsgUtils {
 				buffer.write(data, 0, nRead);
 			}
 			buffer.flush();
+			
+			// Convert contents to a byte array.
 			byte[] fileByteArray = buffer.toByteArray();
 			return fileByteArray;
-
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		return null;
-
 	}
 
-	public static String parseCertficateToString(byte[] bytes) {
-
+	/**
+	 * Gets the user name from the certificate represented in a byte array
+	 * 
+	 * Please refer to the following:
+	 * http://stackoverflow.com/questions/13200326/java-how-do-you-extract-
+	 * issued-to-or-user-from-a-ssl-cert-within-an-httpreques
+	 * 
+	 * @param certificateByteArr
+	 *            The certificate represented as an array of bytes after reading
+	 *            from the certificate file.
+	 * @return The username of the owner of the certificate.
+	 */
+	public static String parseCertficateToString(byte[] certificateByteArr) {
 		try {
+			// Convert the byte array into a certificate object.
 			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-			InputStream in = new ByteArrayInputStream(bytes);
+			InputStream in = new ByteArrayInputStream(certificateByteArr);
 			X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
+
+			// Get the username of the certificate owner.
 			String name = cert.getSubjectX500Principal().getName();
 			String username = "";
 			LdapName ldapName = null;
+
 			try {
 				ldapName = new LdapName(name);
 			} catch (InvalidNameException e) {
 				throw new RuntimeException(e);
 			}
+
+			// Loop over the properties associated with a certificate until we
+			// find CN which stands for Common Name. In our case it is the
+			// username of the certificate owner.
 			for (Rdn rdn : ldapName.getRdns()) {
 				String type = rdn.getType();
 				if ("CN".equals(type)) {
 					username = (String) rdn.getValue();
 				}
 			}
-
 			return username;
 		} catch (CertificateException e) {
 			e.printStackTrace();
