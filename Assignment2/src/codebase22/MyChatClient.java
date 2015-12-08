@@ -66,31 +66,36 @@ class MyChatClient extends ChatClient {
 
 		SerializeNSend(p);
 	}
-	
+
 	/**
 	 * Callback invoked when the certificate file is selected
-	 * @param path Selected certificate file's path
+	 * 
+	 * @param path
+	 *            Selected certificate file's path
 	 */
 	public void FileLocationReceivedCert(File path) {
 		// TODO
 	}
-	
+
 	/**
 	 * Callback invoked when the private key file is selected
-	 * @param path Selected private key file's path
+	 * 
+	 * @param path
+	 *            Selected private key file's path
 	 */
 	public void FileLocationReceivedPriv(File path) {
-		// TODO 
+		// TODO
 	}
-	
+
 	/**
-	 * Callback invoked when an authentication mode is selected. 
-	 * @param IsPWD True if password-based (false if certificate-based).
+	 * Callback invoked when an authentication mode is selected.
+	 * 
+	 * @param IsPWD
+	 *            True if password-based (false if certificate-based).
 	 */
 	public void ReceivedMode(boolean IsPWD) {
 		// TODO
 	}
-
 
 	/**
 	 * Someone clicks on the "Logout" button
@@ -104,7 +109,9 @@ class MyChatClient extends ChatClient {
 
 	/**
 	 * Someone clicks on the "Send" button
-	 * @param message Message to be sent (user's level)
+	 * 
+	 * @param message
+	 *            Message to be sent (user's level)
 	 */
 	public void ChatRequestReceived(byte[] message) {
 		ChatPacket p = new ChatPacket();
@@ -137,9 +144,11 @@ class MyChatClient extends ChatClient {
 	 */
 
 	/**
-	 * Callback invoked when a packet has been received from the server
-	 * (as the client only talks with the server, but not the other client)
-	 * @param buf Incoming message
+	 * Callback invoked when a packet has been received from the server (as the
+	 * client only talks with the server, but not the other client)
+	 * 
+	 * @param buf
+	 *            Incoming message
 	 */
 	public void PacketfromServer(byte[] buf) {
 		ByteArrayInputStream is = new ByteArrayInputStream(buf);
@@ -174,7 +183,7 @@ class MyChatClient extends ChatClient {
 						System.err.println("Chatlog file could not be created or opened.");
 					}
 				}
-				
+
 				RefreshList();
 
 			} else if (p.request == ChatRequest.RESPONSE && p.success.equals("LOGOUT")) {
@@ -197,7 +206,7 @@ class MyChatClient extends ChatClient {
 		}
 
 	}
-	
+
 	/**
 	 * Gives the path of the local chat history file (user-based)
 	 */
@@ -231,7 +240,9 @@ class MyChatClient extends ChatClient {
 
 	/**
 	 * Similar to the one in MyChatServer, serializes and send the Java object
-	 * @param p ChatPacket to serialize and send
+	 * 
+	 * @param p
+	 *            ChatPacket to serialize and send
 	 */
 	private void SerializeNSend(ChatPacket p) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -259,10 +270,14 @@ class MyChatClient extends ChatClient {
 	}
 
 	/**
-	 * Adds a message to the internal's client state 
-	 * @param from From whom the message comes from
-	 * @param to To whom the messaged is addressed
-	 * @param buf Message
+	 * Adds a message to the internal's client state
+	 * 
+	 * @param from
+	 *            From whom the message comes from
+	 * @param to
+	 *            To whom the messaged is addressed
+	 * @param buf
+	 *            Message
 	 */
 	private void Add1Message(String from, String to, byte[] buf) {
 		JsonArrayBuilder builder = Json.createArrayBuilder();

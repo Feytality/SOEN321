@@ -68,36 +68,35 @@ class MyChatServer extends ChatServer {
 			in = new ObjectInputStream(is);
 			Object o = in.readObject();
 			ChatPacket p = (ChatPacket) o;
-			
+
 			if (p.request == ChatRequest.LOGIN) {
-				
+
 				// We want to go through all records
 				for (int i = 0; i < database.size(); i++) {
-					
+
 					JsonObject l = database.getJsonObject(i);
-					
+
 					// When both uid and pwd match
-					if (l.getString("uid").equals(p.uid)
-							&& l.getString("password").equals(p.password)) {
-						
+					if (l.getString("uid").equals(p.uid) && l.getString("password").equals(p.password)) {
+
 						// We do not allow one user to be logged in on multiple
 						// clients
 						if (p.uid.equals(IsA ? statB : statA))
 							continue;
-						
+
 						// Update the corresponding login status
 						if (IsA) {
 							statA = l.getString("uid");
 						} else {
 							statB = l.getString("uid");
 						}
-						
+
 						// Update the UI to indicate this
 						UpdateLogin(IsA, l.getString("uid"));
-						
+
 						// Inform the client that it was successful
 						RespondtoClient(IsA, "LOGIN");
-						
+
 						break;
 					}
 
@@ -115,7 +114,7 @@ class MyChatServer extends ChatServer {
 				}
 				UpdateLogin(IsA, "");
 				RespondtoClient(IsA, "LOGOUT");
-				
+
 			} else if (p.request == ChatRequest.CHAT) {
 				// This is a chat message
 
