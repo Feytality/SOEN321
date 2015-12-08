@@ -39,16 +39,18 @@ class MyChatServer extends ChatServer {
 	 **/
 	String statA = "";
 	String statB = "";
+	/** The nonce for Alice or Bob */
 	int nonceA = 0;
 	int nonceB = 0;
 
-	// In Constructor, the user database is loaded.
+	/**
+	 * The user database is loaded.
+	 */
 	MyChatServer() {
 		try {
 			InputStream in = new FileInputStream("database.json");
 			JsonReader jsonReader = Json.createReader(in);
 			database = jsonReader.readArray();
-
 		} catch (FileNotFoundException e) {
 			System.err.println("Database file not found!");
 			System.exit(-1);
@@ -67,44 +69,43 @@ class MyChatServer extends ChatServer {
 	public void PacketReceived(boolean IsA, byte[] buf) {
 		ByteArrayInputStream is = new ByteArrayInputStream(buf);
 		ObjectInput in = null;
+		
 		try {
 			in = new ObjectInputStream(is);
 			Object o = in.readObject();
 			ChatPacket p = (ChatPacket) o;
 
 			if (p.request == ChatRequest.BEGINCR) {
-				//gen a random nonce and challenge user
+				// Generate a random nonce and challenge user.
 				Random randomGenerator = new Random();
+				
 				if (IsA) {
+					// Generate nonce for Alice.
 					nonceA = randomGenerator.nextInt(900);
 					p.nonce = nonceA;
 					nonceA++;
-				}else{
+				} else {
+					// Generate nonce for Bob.
 					nonceB = randomGenerator.nextInt(900);
 					p.nonce = nonceB;
 					nonceB++;
-					
 				}
 
-				// }else if(false){
-				//
 				p.request = ChatRequest.CHALLENGE;
 				SerializeNSend(IsA, p);
 			}
 
 			if (p.request == ChatRequest.LOGIN) {
-
-				// We want to go through all records
+				// Go through all records
 				for (int i = 0; i < database.size(); i++) {
-
 					JsonObject l = database.getJsonObject(i);
 
 					// When both uid and pwd match
 					if (l.getString("uid").equals(p.uid)) {
 						String compPass = l.getString("password");
-						if (IsA){
+						if (IsA) {
 							compPass = AsgUtils.simpleHash(compPass, nonceA);
-						}else{
+						} else {
 							compPass = AsgUtils.simpleHash(compPass, nonceB);
 						}
 						if (compPass.equals(p.password)) {
@@ -187,6 +188,7 @@ class MyChatServer extends ChatServer {
 	private void SerializeNSend(boolean IsA, ChatPacket p) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		ObjectOutput out = null;
+		
 		try {
 			out = new ObjectOutputStream(os);
 			out.writeObject(p);
@@ -205,7 +207,6 @@ class MyChatServer extends ChatServer {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
 		}
 	}
 

@@ -1,16 +1,10 @@
 package codebase21;
 
 /**
- * You can define all your supported request types here, depending on your chosen protocol.
- * Again, the few below may NOT be suitable for you.
+ * You can define all your supported request types here, depending on your
+ * chosen protocol. Again, the few below may NOT be suitable for you.
  *
  */
 public enum ChatRequest {
-	BEGINCR,
-	CHALLENGE,
-	LOGIN,
-	LOGOUT,
-	CHAT,
-	RESPONSE,
-	CHAT_ACK
+	BEGINCR, CHALLENGE, LOGIN, LOGOUT, CHAT, RESPONSE, CHAT_ACK
 }

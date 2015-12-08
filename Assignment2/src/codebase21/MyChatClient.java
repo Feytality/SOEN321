@@ -12,7 +12,6 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
@@ -20,7 +19,6 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonReader;
-import javax.json.JsonWriter;
 
 import infrastructure.ChatClient;
 
@@ -37,8 +35,8 @@ import infrastructure.ChatClient;
  */
 class MyChatClient extends ChatClient {
 
-	MyChatClient(boolean IsA) { // This is the minimum constructor you must
-		// preserve
+	// This is the minimum constructor you must preserve
+	MyChatClient(boolean IsA) { 
 		super(IsA); // IsA indicates whether it's client A or B
 		startComm(); // starts the communication
 	}
@@ -46,6 +44,7 @@ class MyChatClient extends ChatClient {
 	/** The current user that is logged in on this client **/
 	public String curUser = "";
 
+	/** The current password for the user that is logged in **/
 	public String curPass = "";
 
 	/** The Json array storing the internal history state */
@@ -66,10 +65,6 @@ class MyChatClient extends ChatClient {
 		p.uid = uid;
 		curPass = pwd;
 		SerializeNSend(p);
-
-	}
-
-	public void challengeResponse() {
 
 	}
 
@@ -131,7 +126,7 @@ class MyChatClient extends ChatClient {
 	 */
 
 	/**
-	 * This will refresh the messages on the UI with the Json array chatlog
+	 * This will refresh the messages on the UI with the JSON array chatlog
 	 */
 	void RefreshList() {
 		String[] list = new String[chatlog.size()];
@@ -152,8 +147,7 @@ class MyChatClient extends ChatClient {
 	 * Callback invoked when a packet has been received from the server (as the
 	 * client only talks with the server, but not the other client)
 	 * 
-	 * @param buf
-	 *            Incoming message
+	 * @param	buf	Incoming message
 	 */
 	public void PacketfromServer(byte[] buf) {
 		ByteArrayInputStream is = new ByteArrayInputStream(buf);
@@ -173,8 +167,9 @@ class MyChatClient extends ChatClient {
 				File f = new File(this.getChatLogPath());
 				if (f.exists() && !f.isDirectory()) {
 					try {
-						String chatlogstr= decryptChatLog();//decrypt based on MAC
-						ins = new ByteArrayInputStream(chatlogstr.getBytes(StandardCharsets.UTF_8));			
+						String chatlogstr = decryptChatLog();// decrypt based on
+																// MAC
+						ins = new ByteArrayInputStream(chatlogstr.getBytes(StandardCharsets.UTF_8));
 						jsonReader = Json.createReader(ins);
 						chatlog = jsonReader.readArray();
 					} catch (FileNotFoundException e) {
@@ -191,7 +186,7 @@ class MyChatClient extends ChatClient {
 				}
 				RefreshList();
 
-			} else if (p.request == ChatRequest.CHALLENGE) {//NEW
+			} else if (p.request == ChatRequest.CHALLENGE) {// NEW
 				// User responds to servers challenge as means to login
 				p.password = AsgUtils.simpleHash(curPass, p.nonce + 1);
 				p.request = ChatRequest.LOGIN;
@@ -231,25 +226,26 @@ class MyChatClient extends ChatClient {
 	 */
 
 	/**
-	 * This method saves the Json array storing the chat log back to file
+	 * This method saves the JSON array storing the chat log back to file
 	 */
-	public void SaveChatHistory() {//modified to read file into byte array for security feature
-		if (curUser.equals(""))
+	public void SaveChatHistory() {// modified to read file into byte array for
+									// security feature
+		if (curUser.equals("")) {
 			return;
+		}
+		
 		try {
 			// The chatlog file is named after both the client and the user
 			// logged in
 			FileOutputStream fos = new FileOutputStream(new File(this.getChatLogPath()));
-			String log = encryptChatLog();			
+			String log = encryptChatLog();
 			byte[] bytes = log.getBytes();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream(bytes.length);
 			baos.write(bytes, 0, bytes.length);
 			baos.writeTo(fos);
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -261,6 +257,7 @@ class MyChatClient extends ChatClient {
 	private void SerializeNSend(ChatPacket p) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		ObjectOutput out = null;
+		
 		try {
 			out = new ObjectOutputStream(os);
 			out.writeObject(p);
@@ -279,7 +276,6 @@ class MyChatClient extends ChatClient {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
 		}
 	}
 
@@ -310,52 +306,57 @@ class MyChatClient extends ChatClient {
 
 	}
 
-	
 	/**
-	 * Encrypt the chatlog by dumping the json into a string and running Aes on it based on mac address
+	 * Encrypt the chatlog by dumping the json into a string and running Aes on
+	 * it based on mac address
+	 * 
 	 * @return
 	 */
-	public String encryptChatLog() {//NEW
+	public String encryptChatLog() {// NEW
 		String chatlogString = "";
 		for (int i = 0; i < chatlog.size(); i++) {
-			if(i!=0){
-				chatlogString+=",";
+			if (i != 0) {
+				chatlogString += ",";
 			}
 			chatlogString += chatlog.getJsonObject(i).toString();
 		}
 		String macAddress = AsgUtils.getMac();
-		macAddress= AsgUtils.shortenMac(macAddress);		
+		macAddress = AsgUtils.shortenMac(macAddress);
 		chatlogString = AsgUtils.encrpyt(chatlogString, macAddress);
 		return chatlogString;
 	}
 
-	
 	/**
-	 * Depcrypts the chatlog, leaving it in a string representing Json, Aes decryption based on mac address
-	 * @return
+	 * Decrypts the chatlog, leaving it in a string representing JSON, AES
+	 * decryption based on MAC address.
+	 * 
+	 * @return	decoded	The decrypted chatlog.
+	 * 
 	 * @throws IOException
 	 */
-	public String decryptChatLog() throws IOException {//NEW
-			InputStream ins = null;		
-			ins = new FileInputStream(this.getChatLogPath());
+	public String decryptChatLog() throws IOException {
+		// Read the file
+		InputStream ins = null;
+		ins = new FileInputStream(this.getChatLogPath());
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		int nRead;
+		byte[] data = new byte[16384];
 
-			int nRead;
-			byte[] data = new byte[16384];
+		while ((nRead = ins.read(data, 0, data.length)) != -1) {
+			buffer.write(data, 0, nRead);
+		}
 
-			while ((nRead = ins.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, nRead);
-			}
-
-			buffer.flush();
-			String decoded = new String(buffer.toByteArray(), "UTF-8");
-			String macAddress = AsgUtils.getMac();
-			macAddress= AsgUtils.shortenMac(macAddress);
-			decoded=AsgUtils.decrypt(decoded, macAddress);
-			decoded ="["+decoded+"]";
-			ins.close();
-			return decoded;
+		buffer.flush();
+		
+		// Decrypt the file.
+		String decoded = new String(buffer.toByteArray(), "UTF-8");
+		String macAddress = AsgUtils.getMac();
+		macAddress = AsgUtils.shortenMac(macAddress);
+		decoded = AsgUtils.decrypt(decoded, macAddress);
+		decoded = "[" + decoded + "]";
+		ins.close();
+		return decoded;
 	}
 
 }
