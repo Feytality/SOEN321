@@ -143,7 +143,7 @@ class MyChatServer extends ChatServer {
 					buf=AsgUtils.encrypt(dec, recipient);//en					
 					ChatPacket p2 = new ChatPacket();
 					p2.request = ChatRequest.CHAT;
-					p2.uid = "Server";
+					p2.uid = p.uid;
 					p2.data=buf;
 					// Forward the original packet to the recipient
 					SerializeNSend(!IsA, p2);
